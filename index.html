@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kavi Reward System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F2E8;
+    --surface:#FFFFFF;
+    --surface-2:#FBF8F1;
+    --border:#E6DFCC;
+    --border-strong:#D8CDAE;
+    --ink:#221F1A;
+    --ink-soft:#6B6457;
+    --ink-faint:#9C9484;
+    --accent:#1F6F5C;
+    --accent-dark:#154E41;
+    --accent-soft:#DCEEE7;
+    --amber:#B8651E;
+    --amber-soft:#F3E3D2;
+    --burn:#9C3B2E;
+    --burn-soft:#F1DCD6;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow-sm:0 1px 2px rgba(34,31,26,0.06);
+    --shadow-md:0 8px 24px rgba(34,31,26,0.10);
+    --font-display:'Fraunces',Georgia,serif;
+    --font-body:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-mono:'IBM Plex Mono',Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent-dark);}
+  button{font-family:inherit;cursor:pointer;}
+  input,textarea,select{font-family:inherit;font-size:14px;}
+  ::selection{background:var(--accent-soft);}
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    position:sticky;top:0;z-index:30;
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;}
+  .brand-lockup{display:flex;align-items:baseline;gap:10px;}
+  .brand .word{font-family:var(--font-display);font-weight:500;font-size:24px;letter-spacing:0.2px;color:var(--ink);}
+  .brand .sub{font-size:12px;color:var(--ink-faint);letter-spacing:0.4px;text-transform:uppercase;}
+  .store-name-row{display:flex;align-items:center;gap:6px;min-height:18px;}
+  .store-name-row[hidden]{display:none;}
+  .store-name-text{font-size:13px;color:var(--ink-soft);}
+  .store-name-text.placeholder{color:var(--ink-faint);font-style:italic;}
+  .store-edit-btn{border:none;background:none;color:var(--ink-faint);font-size:12px;cursor:pointer;padding:2px 4px;line-height:1;}
+  .store-edit-btn:hover{color:var(--accent);}
+  .top-right{display:flex;align-items:center;gap:12px;}
+  .net-pill{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);font-size:12px;
+    padding:6px 10px;border-radius:999px;border:1px solid var(--border-strong);
+    color:var(--ink-soft);background:var(--surface-2);
+  }
+  .net-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);}
+  .net-pill.ok .net-dot{background:var(--accent);}
+  .net-pill.bad .net-dot{background:var(--burn);}
+  .wallet-area{display:flex;align-items:center;gap:8px;}
+  .btn{
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    color:var(--ink);
+    padding:9px 16px;
+    border-radius:var(--radius-sm);
+    font-size:13.5px;font-weight:500;
+    transition:background .15s,border-color .15s,transform .04s;
+  }
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn:active{transform:translateY(1px);}
+  .btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .btn-accent:hover{background:var(--accent-dark);border-color:var(--accent-dark);}
+  .btn-burn{background:var(--burn);border-color:var(--burn);color:#fff;}
+  .btn-burn:hover{background:#7E2E24;}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--ink-soft);padding:6px 10px;}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-sm{padding:6px 12px;font-size:12.5px;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .acct-chip{
+    font-family:var(--font-mono);font-size:13px;
+    padding:8px 12px;border-radius:var(--radius-sm);
+    background:var(--surface-2);border:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;
+  }
+  .admin-badge{
+    font-family:var(--font-body);font-size:10.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;
+    background:var(--amber-soft);color:var(--amber);
+    padding:3px 7px;border-radius:6px;
+  }
+
+  .ticker{
+    display:flex;align-items:center;gap:0;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--border);
+    padding:10px 28px;
+    overflow-x:auto;
+    font-family:var(--font-mono);
+  }
+  .ticker-item{display:flex;align-items:baseline;gap:7px;padding:0 18px;border-right:1px solid var(--border-strong);white-space:nowrap;}
+  .ticker-item:last-child{border-right:none;}
+  .ticker-label{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.4px;font-family:var(--font-body);}
+  .ticker-value{font-size:14px;color:var(--ink);font-weight:500;}
+  .ticker-value.flash{animation:flash .9s ease;}
+  @keyframes flash{0%{background:var(--accent-soft);}100%{background:transparent;}}
+  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1.8s infinite;}
+  @media (prefers-reduced-motion:reduce){.live-dot{animation:none;} .ticker-value.flash{animation:none;}}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .ticker-refresh{margin-left:auto;padding-left:18px;}
+
+  .tabs{display:flex;gap:4px;padding:0 28px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .tab-btn{
+    border:none;background:none;padding:14px 6px;margin-right:22px;
+    font-size:14.5px;color:var(--ink-faint);font-weight:500;
+    border-bottom:2px solid transparent;
+  }
+  .tab-btn.active{color:var(--ink);border-bottom-color:var(--accent);}
+  .tab-btn:hover{color:var(--ink);}
+
+  .container{max-width:1080px;margin:0 auto;padding:32px 28px 80px;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;}
+  .section-title{font-family:var(--font-display);font-size:21px;font-weight:500;margin:0;}
+  .section-hint{font-size:13px;color:var(--ink-faint);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:0;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;overflow:hidden;
+  }
+  .card-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--surface-2);}
+  .card-body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1;}
+  .pill{display:inline-flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;padding:3px 8px;border-radius:6px;}
+  .pill-product{background:var(--accent-soft);color:var(--accent-dark);}
+  .pill-service{background:var(--amber-soft);color:var(--amber);}
+  .pill-pending{background:var(--amber-soft);color:var(--amber);}
+  .pill-approved{background:var(--accent-soft);color:var(--accent-dark);}
+  .pill-rejected{background:var(--burn-soft);color:var(--burn);}
+  .item-name{font-family:var(--font-display);font-size:18px;font-weight:500;margin:0;}
+  .item-desc{font-size:13.5px;color:var(--ink-soft);flex:1;}
+  .item-price{font-family:var(--font-mono);font-size:17px;font-weight:500;}
+  .item-price-label{font-size:11px;color:var(--ink-faint);}
+  .reward-text{font-family:var(--font-mono);font-size:13px;color:var(--amber);font-weight:500;}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:4px;gap:8px;}
+
+  .empty-state{
+    text-align:center;color:var(--ink-faint);font-size:14px;
+    padding:48px 20px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:var(--surface-2);
+  }
+
+  .list{display:flex;flex-direction:column;gap:12px;}
+  .row-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-sm);
+  }
+  .row-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .row-id{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);}
+  .row-meta{font-size:13px;color:var(--ink-soft);}
+  .mono{font-family:var(--font-mono);}
+  .copy-btn{border:none;background:none;color:var(--ink-faint);font-size:11px;text-decoration:underline;padding:0;}
+
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .field label{font-size:12.5px;font-weight:500;color:var(--ink-soft);}
+  .field input,.field textarea,.field select{
+    padding:9px 11px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+    background:var(--surface);color:var(--ink);max-width:100%;box-sizing:border-box;
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .field-row{display:flex;gap:12px;}
+  .field-row .field{flex:1;min-width:0;}
+  .input-prefix{position:relative;}
+  .input-prefix span{position:absolute;left:11px;top:9px;color:var(--ink-faint);font-size:14px;}
+  .input-prefix input{padding-left:26px;}
+
+  .radio-pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .radio-pill{
+    display:flex;align-items:center;gap:7px;padding:9px 14px;
+    border:1px solid var(--border-strong);border-radius:999px;font-size:13.5px;
+    cursor:pointer;background:var(--surface);user-select:none;flex:1;justify-content:center;
+  }
+  .radio-pill input{accent-color:var(--accent);margin:0;width:auto;flex:none;}
+  .radio-pill:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent-dark);font-weight:500;}
+
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+  .panel-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow-sm);}
+  .panel-box h3{font-family:var(--font-display);font-size:16.5px;font-weight:500;margin:0 0 14px;}
+  .panel-box p.muted{color:var(--ink-soft);font-size:13px;margin:6px 0 14px;}
+
+  .subtabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .subtab-btn{border:1px solid var(--border-strong);background:var(--surface);padding:7px 14px;border-radius:999px;font-size:13px;color:var(--ink-soft);}
+  .subtab-btn.active{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+  .subpanel{display:none;}
+  .subpanel.active{display:block;}
+
+  table.admin-table{width:100%;min-width:560px;border-collapse:collapse;font-size:13.5px;}
+  table.admin-table th{text-align:left;color:var(--ink-faint);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 10px;border-bottom:1px solid var(--border-strong);}
+  table.admin-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  table.admin-table tr:last-child td{border-bottom:none;}
+  .stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:18px;}
+  .stat{display:flex;flex-direction:column;gap:3px;}
+  .stat .num{font-family:var(--font-mono);font-size:22px;font-weight:500;}
+  .stat .lbl{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.3px;}
+
+  .toggle{position:relative;width:40px;height:22px;border-radius:999px;background:var(--border-strong);border:none;flex:none;}
+  .toggle.on{background:var(--accent);}
+  .toggle .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;}
+  .toggle.on .knob{transform:translateX(18px);}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(34,31,26,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-overlay[hidden]{display:none;}
+  .modal{background:var(--surface);border-radius:var(--radius);max-width:440px;width:100%;padding:24px;box-shadow:var(--shadow-md);}
+  .welcome-overlay{display:flex;align-items:center;justify-content:center;text-align:center;animation:welcomeFadeIn .25s ease;}
+  .welcome-modal{position:relative;text-align:center;animation:welcomePopIn .35s cubic-bezier(.2,.8,.2,1);}
+  .welcome-modal h3{text-align:center;font-size:24px;}
+  .welcome-modal .note{font-size:16px;line-height:1.6;}
+  .welcome-modal .modal-actions{justify-content:center;}
+  @keyframes welcomeFadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes welcomePopIn{from{opacity:0;transform:scale(.92) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  @media (prefers-reduced-motion:reduce){.welcome-overlay,.welcome-modal{animation:none;}}
+  .modal h3{font-family:var(--font-display);font-size:19px;margin:0 0 6px;}
+  .modal .close-x{position:absolute;top:16px;right:18px;border:none;background:none;font-size:18px;color:var(--ink-faint);}
+  .modal-row{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .modal-row:last-of-type{border-bottom:none;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;}
+  .modal-actions .btn{flex:1;}
+  .note{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.5;}
+
+  .toast-stack{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:200;max-width:340px;}
+  .toast{background:var(--ink);color:var(--surface);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:4px;animation:toastIn .2s ease;}
+  .toast.error{background:var(--burn);}
+  .toast.success{background:var(--accent-dark);}
+  .toast a{color:#fff;text-decoration:underline;font-size:12px;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .footer{text-align:center;padding:24px;color:var(--ink-faint);font-size:12px;border-top:1px solid var(--border);}
+
+  .diag-banner{background:var(--burn-soft);border-bottom:1px solid var(--burn);padding:12px 20px;font-size:13px;color:var(--burn);position:sticky;top:0;z-index:50;}
+  .diag-banner div{margin-bottom:4px;}
+  .diag-banner .diag-close{float:right;border:none;background:none;color:var(--burn);font-size:13px;text-decoration:underline;cursor:pointer;}
+  .footer a{color:var(--ink-soft);}
+
+  .inline-form{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+  .inline-form .field{margin-bottom:0;min-width:160px;}
+
+  @media (max-width:640px){
+    .topbar{padding:14px 16px;flex-wrap:wrap;gap:10px;}
+    .brand{flex:1;}
+    .top-right{flex-wrap:wrap;gap:8px;width:100%;justify-content:space-between;}
+    .ticker{padding:10px 16px;}
+    .ticker-item{padding:0 12px;}
+    .tabs{padding:0 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab-btn{margin-right:16px;white-space:nowrap;}
+    .container{padding:24px 16px 60px;}
+    .field-row{flex-direction:column;}
+    .grid{grid-template-columns:1fr;}
+    .stat-row{gap:16px;}
+    .inline-form{flex-direction:column;align-items:stretch;}
+    .inline-form .field{min-width:0;width:100%;}
+    .inline-form > .btn{width:100%;}
+    .modal{padding:18px;max-height:90vh;overflow-y:auto;}
+    .modal-row{flex-wrap:wrap;gap:4px;}
+    .acct-chip{font-size:12px;}
+    .subtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;}
+    .subtab-btn{white-space:nowrap;}
+  }
+</style>
+</head>
+<body>
+
+<div id="diagBanner" class="diag-banner" hidden><button class="diag-close" id="diagClose">Dismiss</button></div>
+
+<script>
+(function(){
+  function showDiag(msg){
+    var b = document.getElementById("diagBanner");
+    b.hidden = false;
+    var p = document.createElement("div");
+    p.textContent = msg;
+    b.appendChild(p);
+  }
+  document.getElementById("diagClose").addEventListener("click", function(){
+    document.getElementById("diagBanner").hidden = true;
+  });
+  window.addEventListener("error", function(e){
+    showDiag("Script error: " + (e.message || (e.error && e.error.message) || "unknown error") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : ""));
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    var reason = e.reason;
+    showDiag("Unhandled error: " + (reason && reason.message ? reason.message : String(reason)));
+  });
+  if(location.protocol === "file:"){
+    showDiag("This page was opened directly as a local file. Some browsers block wallet extensions and outside network requests on file:// pages. If wallet connect or live prices don't work, try serving this file from a local web server (e.g. \"npx serve\" in its folder) and opening it via http://localhost instead.");
+  }
+  window.__showDiag = showDiag;
+})();
+</script>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-lockup">
+      <span class="word">Kavi</span>
+      <span class="sub">Reward System</span>
+    </div>
+    <div class="store-name-row" id="storeNameRow" hidden>
+      <span class="store-name-text" id="storeNameText"></span>
+      <button class="store-edit-btn" id="editStoreNameBtn" hidden title="Edit store name">✎</button>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="net-pill" id="netPill"><span class="net-dot"></span><span id="netPillText">No wallet</span></span>
+    <div class="wallet-area" id="walletArea">
+      <button class="btn btn-accent" id="connectBtn">Connect wallet</button>
+    </div>
+  </div>
+</header>
+
+<div class="ticker">
+  <div class="ticker-item">
+    <span class="ticker-label">burn fee</span>
+    <span class="ticker-value mono" id="tkFee">—</span>
+  </div>
+  <div class="ticker-item" id="tkUserBalanceItem" hidden>
+    <span class="ticker-label">Balance</span>
+    <span class="ticker-value mono" id="tkUserBalance">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="ticker-label">Active listings</span>
+    <span class="ticker-value mono" id="tkItems">—</span>
+  </div>
+  <div class="ticker-item">
+    <span class="live-dot"></span>
+    <span class="ticker-label" id="tkUpdated">live</span>
+  </div>
+  <button class="btn btn-ghost btn-sm ticker-refresh" id="refreshBtn">Refresh</button>
+</div>
+
+<nav class="tabs" id="mainTabs">
+  <button class="tab-btn active" data-tab="marketplace">Marketplace</button>
+  <button class="tab-btn" data-tab="orders">My orders</button>
+  <button class="tab-btn" data-tab="admin" id="adminTabBtn" hidden>Admin</button>
+</nav>
+
+<main class="container">
+
+  <section id="tab-marketplace" class="tab-panel active">
+    <div class="section-head" style="margin-bottom:6px;">
+      <h2 class="section-title">Listings</h2>
+    </div>
+    <p class="section-hint" style="margin:0 0 18px;">Prices shown for reference — payment happens off-chain with the seller</p>
+    <div class="grid" id="catalogGrid"></div>
+    <p class="empty-state" id="catalogEmpty" hidden>No active listings yet.</p>
+  </section>
+
+  <section id="tab-orders" class="tab-panel">
+    <div class="section-head">
+      <h2 class="section-title">My orders</h2>
+      <span class="section-hint" id="ordersHint"></span>
+    </div>
+
+    <div class="panel-box" id="referralPanel" hidden>
+      <h3 style="margin:0 0 8px;font-family:var(--font-display);font-size:16px;font-weight:500;">Referral</h3>
+      <div id="referralStatus"></div>
+    </div>
+
+    <p class="empty-state" id="ordersConnectPrompt">Connect your wallet to see the purchase requests you've made.</p>
+    <div class="list" id="ordersList"></div>
+  </section>
+
+  <section id="tab-admin" class="tab-panel">
+    <div class="panel-box" id="pendingAdminBanner" hidden style="border-color:var(--accent);background:var(--accent-soft);">
+      <h3 style="color:var(--accent-dark);">You've been proposed as the new admin</h3>
+      <p class="muted">Accept the role to start managing listings, requests, and the treasury.</p>
+      <button class="btn btn-accent" id="acceptAdminBannerBtn">Accept admin role</button>
+    </div>
+    <nav class="subtabs" id="adminSubTabs">
+      <button class="subtab-btn active" data-subtab="catalog">Catalog</button>
+      <button class="subtab-btn" data-subtab="requests">Requests</button>
+      <button class="subtab-btn" data-subtab="treasury">Treasury</button>
+      <button class="subtab-btn" data-subtab="settings">Settings</button>
+    </nav>
+
+    <div class="subpanel active" id="admin-catalog">
+      <div class="panel-box">
+        <h3>Add a listing</h3>
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="newItemName" placeholder="e.g. Logo design" /></div>
+          <div class="field"><label>Type</label>
+            <div class="radio-pills">
+              <label class="radio-pill"><input type="radio" name="newItemType" value="0" checked> Product</label>
+              <label class="radio-pill"><input type="radio" name="newItemType" value="1"> Service</label>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>Description</label><textarea id="newItemDesc" placeholder="What the buyer gets"></textarea></div>
+        <div class="field-row">
+          <div class="field input-prefix"><label>Price (INR)</label><span>₹</span><input type="number" step="0.01" min="0" id="newItemPrice" placeholder="499.00" /></div>
+          <div class="field input-prefix"><label>Reward (USD, live rate)</label><span>$</span><input type="number" step="0.01" min="0" id="newItemReward" placeholder="5.00" /></div>
+          <div class="field" style="align-self:flex-end;">
+            <button class="btn btn-accent" id="addItemBtn">Add listing</button>
+          </div>
+        </div>
+        <div class="field"><label>Image URL <span style="font-weight:400;color:var(--ink-faint);">(optional)</span></label><input type="url" id="newItemImage" placeholder="https://..." /></div>
+        <div id="newItemImagePreview" style="display:none;margin-bottom:4px;"><img id="newItemImagePreviewImg" style="max-height:120px;border-radius:var(--radius-sm);border:1px solid var(--border);" /></div>
+      </div>
+
+      <div class="panel-box">
+        <h3>Active listings</h3>
+        <p class="muted">Only currently active listings appear here.</p>
+        <div class="table-scroll">
+        <table class="admin-table" id="adminItemsTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Price</th><th>Reward</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adminItemsBody"></tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="panel-box">
+        <div class="section-head" style="margin-bottom:6px;">
+          <h3 style="margin:0;">Deactivated listings</h3>
+          <button class="btn btn-sm" id="loadDeactivatedBtn">Refresh</button>
+        </div>
+        <p class="muted">Listings that are hidden from the marketplace but not deleted. Reactivate to make them purchasable again.</p>
+        <div id="deactivatedLoading" class="section-hint" hidden>Scanning listings…</div>
+        <div class="table-scroll">
+        <table class="admin-table" id="deactivatedItemsTable">
+          <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Price</th><th>Reward</th><th></th></tr></thead>
+          <tbody id="deactivatedItemsBody"></tbody>
+        </table>
+        </div>
+        <p class="empty-state" id="deactivatedEmpty" hidden>No deactivated listings found.</p>
+      </div>
+    </div>
+
+    <div class="subpanel" id="admin-requests">
+      <div class="panel-box">
+        <div class="section-head" style="margin-bottom:6px;">
+          <h3 style="margin:0;">Pending requests</h3>
+          <span class="section-hint" id="pendingCountHint"></span>
+        </div>
+        <div class="panel-box" id="lowBalanceBanner" hidden style="border-color:var(--burn);background:var(--burn-soft);padding:12px;margin-bottom:12px;">
+          <span style="color:var(--burn);font-size:13px;">⚠️ Treasury balance is too low to approve requests. <a href="#" id="lowBalGoTreasury" style="color:var(--burn);font-weight:600;">Deposit KAVI →</a></span>
+        </div>
+        <div class="list" id="pendingList"></div>
+        <p class="empty-state" id="pendingEmpty" hidden>No pending requests.</p>
+      </div>
+
+      <div class="panel-box">
+        <div class="section-head" style="margin-bottom:6px;">
+          <h3 style="margin:0;">Processed requests</h3>
+          <button class="btn btn-sm" id="loadProcessedBtn">Load</button>
+        </div>
+        <p class="muted">Approved and rejected requests history.</p>
+        <div id="processedLoading" class="section-hint" hidden>Loading…</div>
+        <div class="list" id="processedList"></div>
+        <p class="empty-state" id="processedEmpty" hidden>No processed requests found.</p>
+      </div>
+    </div>
+
+    <div class="subpanel" id="admin-treasury">
+      <div class="panel-box">
+        <div class="stat-row">
+          <div class="stat"><span class="num mono" id="treasuryBalance">—</span><span class="lbl">Contract KAVI balance</span></div>
+          <div class="stat"><span class="num mono" id="adminKaviBalance">—</span><span class="lbl">Your KAVI balance</span></div>
+        </div>
+      </div>
+      <div class="panel-box">
+        <h3>Deposit KAVI</h3>
+        <p class="muted">Tops up the treasury that funds approved purchase rewards.</p>
+        <div class="inline-form">
+          <div class="field"><label>Amount (KAVI)</label><input type="text" id="depositAmount" placeholder="1000" /></div>
+          <button class="btn btn-accent" id="depositBtn">Deposit</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="subpanel" id="admin-settings">
+      <div class="panel-box">
+        <h3>Marketplace status</h3>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="toggle" id="pauseToggle"><span class="knob"></span></button>
+          <span id="pauseLabel" style="font-size:13.5px;">Active — buying and approvals are open</span>
+        </div>
+      </div>
+
+      <div class="panel-box">
+        <h3>Admin transfer</h3>
+        <p class="muted">Current admin: <span class="mono" id="currentAdminAddr">—</span> · Proposed: <span class="mono" id="currentPendingAdmin">—</span></p>
+        <div class="inline-form">
+          <div class="field"><label>Propose new admin</label><input type="text" id="proposeAdminAddr" placeholder="0x..." style="width:300px;" /></div>
+          <button class="btn" id="proposeAdminBtn">Propose</button>
+        </div>
+        <p class="note" id="acceptAdminNote" hidden>This wallet is the proposed admin — <button class="btn btn-sm" id="acceptAdminBtn" style="margin-left:6px;">Accept admin role</button></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="modal-overlay" id="buyModalOverlay" hidden>
+  <div class="modal">
+    <button class="close-x" id="buyModalClose">&times;</button>
+    <h3 id="buyModalTitle">Confirm request</h3>
+    <p class="section-hint" id="buyModalSub"></p>
+    <div class="modal-row"><span>Reference price</span><span class="mono" id="buyModalPrice"></span></div>
+    <div class="modal-row"><span>Reward</span><span class="mono" id="buyModalReward"></span></div>
+    <div class="modal-row"><span>Live burn fee (from your wallet)</span><span class="mono" id="buyModalFee"></span></div>
+    <div class="panel-box" id="buyModalLowBalWarn" hidden style="background:var(--burn-soft);border-color:var(--burn);padding:12px;margin-top:12px;">
+      <span style="color:var(--burn);font-size:13px;">⚠️ Your KAVI balance is too low to cover the burn fee. Please top up your KAVI balance before proceeding.</span>
+    </div>
+    <p class="note">This creates an on-chain purchase request only. Off-chain payment (UPI, bank transfer, etc.) should be arranged directly with the seller. The KAVI reward is locked in at the live rate the moment you submit.</p>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="buyConfirmBtn">Buy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay welcome-overlay" id="welcomeModalOverlay">
+  <div class="modal welcome-modal">
+    <button class="close-x" id="welcomeModalCloseX" aria-label="Close">✕</button>
+    <h3 id="welcomeModalTitle">Welcome to Our Store</h3>
+    <p class="note" style="margin-top:10px;" id="welcomeModalBody">Buy more Products/Services from Our Store and get More Kavi Token Rewards. With Kavi Token you can Buy more products/Services from our Store.</p>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="welcomeModalCloseBtn">Got it</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay welcome-overlay" id="referralSetupModalOverlay" hidden>
+  <div class="modal welcome-modal">
+    <button class="close-x" id="referralSetupCloseX" aria-label="Close">✕</button>
+    <h3>Have a referrer?</h3>
+    <p class="note" style="margin-top:10px;">If someone referred you here, enter their wallet address below. You can only set this once, and it can't be changed later.</p>
+    <div class="field" style="margin-top:14px;text-align:left;">
+      <label>Referrer wallet address</label>
+      <input type="text" id="referralSetupInput" placeholder="0x..." />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="referralSetupSkipBtn">Skip</button>
+      <button class="btn btn-accent" id="referralSetupConfirmBtn">Set referrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<footer class="footer">
+  Contract <a id="contractLink" href="#" target="_blank" rel="noopener">—</a> on BNB Smart Chain
+</footer>
+
+<script>
+function __loadScript(src){
+  return new Promise(function(resolve, reject){
+    var s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = function(){ reject(new Error("Failed to load " + src)); };
+    document.head.appendChild(s);
+  });
+}
+window.__ethersReady = (typeof ethers !== "undefined") ? Promise.resolve() :
+  __loadScript("https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js")
+    .catch(function(){
+      window.__showDiag && window.__showDiag("Primary script source (cdnjs) failed to load — trying a backup source…");
+      return __loadScript("https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js");
+    })
+    .catch(function(e){
+      window.__showDiag && window.__showDiag("Could not load the ethers.js library from any source. Check your internet connection, disable any script-blocking extension for this page, or try a different network/browser.");
+      throw e;
+    });
+</script>
+<script>
+window.__ethersReady.then(function(){
+
+const MARKETPLACE_ADDRESS = "0x9584aab6D7F758e225C66e3F5d531827eB434714";
+const CHAIN_ID = 56;
+const CHAIN_ID_HEX = "0x38";
+const BSCSCAN = "https://bscscan.com";
+const RPC_URLS = [
+  "https://bsc-rpc.publicnode.com",
+  "https://bsc.publicnode.com",
+  "https://rpc.ankr.com/bsc",
+  "https://bsc.drpc.org",
+  "https://bsc-dataseed.binance.org/",
+  "https://bsc-dataseed1.defibit.io/",
+  "https://bsc-dataseed1.ninicoin.io/"
+];
+
+// WalletConnect lets people connect an *externally installed* mobile wallet app
+// (Trust Wallet, MetaMask mobile, etc.) when this page is opened in a regular
+// mobile/desktop browser (Chrome, Safari...) that has no injected wallet.
+// REQUIRED SETUP: get a free Project ID at https://cloud.walletconnect.com
+// (sign up → Create Project → copy the Project ID) and paste it below.
+// Until a real Project ID is set, the "Connect Wallet" button will still work
+// normally for wallet-app browsers / desktop extensions — it will just show a
+// message instead of the WalletConnect QR flow for outside browsers.
+const WALLETCONNECT_PROJECT_ID = "f687c8f15243c1982602acdbe5d7a673";
+
+document.getElementById("contractLink").href = BSCSCAN + "/address/" + MARKETPLACE_ADDRESS;
+document.getElementById("contractLink").textContent = MARKETPLACE_ADDRESS.slice(0,8) + "…" + MARKETPLACE_ADDRESS.slice(-4);
+
+const ITEM_TUPLE = [
+  {"name":"id","type":"uint256"},
+  {"name":"name","type":"string"},
+  {"name":"description","type":"string"},
+  {"name":"priceInINR","type":"uint256"},
+  {"name":"rewardUsd1e18","type":"uint256"},
+  {"name":"imageUrl","type":"string"},
+  {"name":"itemType","type":"uint8"},
+  {"name":"isActive","type":"bool"}
+];
+const REQUEST_TUPLE = [
+  {"name":"id","type":"uint256"},
+  {"name":"itemId","type":"uint256"},
+  {"name":"buyer","type":"address"},
+  {"name":"kaviAmount","type":"uint256"},
+  {"name":"status","type":"uint8"},
+  {"name":"createdAt","type":"uint256"},
+  {"name":"processedAt","type":"uint256"}
+];
+
+const MARKETPLACE_ABI = [
+  {"anonymous":false,"inputs":[{"indexed":true,"name":"requestId","type":"uint256"},{"indexed":true,"name":"referrer","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"ReferralRewarded","type":"event"},
+  {"inputs":[],"name":"AlreadyHasReferrer","type":"error"},
+  {"inputs":[],"name":"CannotReferSelf","type":"error"},
+  {"inputs":[],"name":"ContractIsPaused","type":"error"},
+  {"inputs":[],"name":"InsufficientContractBalance","type":"error"},
+  {"inputs":[],"name":"InvalidPairTokens","type":"error"},
+  {"inputs":[],"name":"InvalidReserves","type":"error"},
+  {"inputs":[],"name":"ItemNotActive","type":"error"},
+  {"inputs":[],"name":"ItemNotFound","type":"error"},
+  {"inputs":[],"name":"NameRequired","type":"error"},
+  {"inputs":[],"name":"NotAdmin","type":"error"},
+  {"inputs":[],"name":"NotPendingAdmin","type":"error"},
+  {"inputs":[],"name":"PriceSourceNotSet","type":"error"},
+  {"inputs":[],"name":"Reentrant","type":"error"},
+  {"inputs":[],"name":"RequestAlreadyProcessed","type":"error"},
+  {"inputs":[],"name":"RequestNotFound","type":"error"},
+  {"inputs":[],"name":"TransferFailed","type":"error"},
+  {"inputs":[],"name":"TransferFromFailed","type":"error"},
+  {"inputs":[],"name":"ZeroAddress","type":"error"},
+  {"inputs":[],"name":"ZeroAmount","type":"error"},
+  {"inputs":[],"name":"BPS_DENOMINATOR","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"BURN_BPS","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"FEE1_BPS","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"FEE2_BPS","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"REFERRAL_BPS","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"TX_BURN_USD_1E18","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"acceptAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"name","type":"string"},{"name":"description","type":"string"},{"name":"priceInINR","type":"uint256"},{"name":"rewardUsd1e18","type":"uint256"},{"name":"imageUrl","type":"string"},{"name":"itemType","type":"uint8"}],"name":"addItem","outputs":[{"type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"admin","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"requestId","type":"uint256"}],"name":"approveRequest","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"itemId","type":"uint256"}],"name":"buyItem","outputs":[{"type":"uint256"}],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"currentTxBurnFeeInKavi","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"itemId","type":"uint256"}],"name":"deleteItem","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"amount","type":"uint256"}],"name":"depositTokens","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"feesWallet1","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"feesWallet2","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getAllActiveItems","outputs":[{"type":"tuple[]","components":"ITEM_TUPLE"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"usd1e18","type":"uint256"}],"name":"getKaviAmountForUsd","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getPendingRequests","outputs":[{"type":"tuple[]","components":"REQUEST_TUPLE"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"getProcessedRequests","outputs":[{"type":"tuple[]","components":"REQUEST_TUPLE"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"user","type":"address"}],"name":"getUserRequests","outputs":[{"type":"tuple[]","components":"REQUEST_TUPLE"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"","type":"uint256"}],"name":"items","outputs":[{"name":"id","type":"uint256"},{"name":"name","type":"string"},{"name":"description","type":"string"},{"name":"priceInINR","type":"uint256"},{"name":"rewardUsd1e18","type":"uint256"},{"name":"imageUrl","type":"string"},{"name":"itemType","type":"uint8"},{"name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"kaviIsToken0","outputs":[{"type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"kaviToken","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"kaviUsdPair","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"maxTxBurnFeeInKavi","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"paused","outputs":[{"type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"pendingAdmin","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"","type":"uint256"}],"name":"purchaseRequests","outputs":[{"type":"uint256"},{"type":"uint256"},{"type":"address"},{"type":"uint256"},{"type":"uint8"},{"type":"uint256"},{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"","type":"address"}],"name":"referrers","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"requestId","type":"uint256"}],"name":"rejectRequest","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"itemId","type":"uint256"},{"name":"v","type":"bool"}],"name":"setItemStatus","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"cap","type":"uint256"}],"name":"setMaxTxBurnFeeInKavi","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"v","type":"bool"}],"name":"setPaused","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"a","type":"address"}],"name":"setPendingAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"referrer","type":"address"}],"name":"setReferrer","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"n","type":"string"}],"name":"setStoreName","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"v","type":"bool"}],"name":"setTxBurnFeeEnabled","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[],"name":"stableDecimals","outputs":[{"type":"uint8"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"stablePairToken","outputs":[{"type":"address"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"storeName","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"txBurnFeeEnabled","outputs":[{"type":"bool"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"itemId","type":"uint256"},{"name":"name","type":"string"},{"name":"description","type":"string"},{"name":"priceInINR","type":"uint256"},{"name":"rewardUsd1e18","type":"uint256"},{"name":"imageUrl","type":"string"}],"name":"updateItem","outputs":[],"stateMutability":"nonpayable","type":"function"},
+  {"inputs":[{"name":"amount","type":"uint256"},{"name":"to","type":"address"}],"name":"withdrawTokens","outputs":[],"stateMutability":"nonpayable","type":"function"}
+];
+
+// Fix tuple component references — ethers.js needs actual arrays, not strings
+MARKETPLACE_ABI.forEach(function(f){
+  (f.outputs||[]).forEach(function(o){
+    if(o.components === "ITEM_TUPLE")    o.components = ITEM_TUPLE;
+    if(o.components === "REQUEST_TUPLE") o.components = REQUEST_TUPLE;
+  });
+});
+
+const ERC20_ABI = [
+  {"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"decimals","outputs":[{"type":"uint8"}],"stateMutability":"view","type":"function"},
+  {"inputs":[],"name":"symbol","outputs":[{"type":"string"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"type":"uint256"}],"stateMutability":"view","type":"function"},
+  {"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"type":"bool"}],"stateMutability":"nonpayable","type":"function"}
+];
+
+const ERROR_MESSAGES = {
+  AlreadyHasReferrer:"You already have a referrer set — it cannot be changed.",
+  CannotReferSelf:"You cannot set yourself as your own referrer.",
+  NotAdmin:"Only the contract admin can do this.",
+  NotPendingAdmin:"Only the proposed new admin can accept this role.",
+  ZeroAddress:"Please provide a valid wallet address.",
+  ZeroAmount:"Amount must be greater than zero.",
+  ContractIsPaused:"The marketplace is currently paused by the admin.",
+  Reentrant:"Please wait for the previous transaction to finish first.",
+  TransferFailed:"The KAVI transfer failed.",
+  TransferFromFailed:"Token transfer failed — check your KAVI balance and allowance.",
+  NameRequired:"Please enter a name for this listing.",
+  ItemNotFound:"This listing no longer exists.",
+  ItemNotActive:"This listing is currently unavailable.",
+  RequestNotFound:"This request could not be found.",
+  RequestAlreadyProcessed:"This request has already been approved or rejected.",
+  InsufficientContractBalance:"The marketplace treasury doesn't have enough KAVI for this.",
+  PriceSourceNotSet:"The live price source isn't configured yet.",
+  InvalidPairTokens:"That pair address doesn't match KAVI and the stable token.",
+  InvalidReserves:"The price pool currently has no liquidity."
+};
+
+const state = {
+  readProvider:null,
+  provider:null,
+  signer:null,
+  wcProvider:null,
+  _appKitModal:null,
+  account:null,
+  isAdmin:false,
+  isPendingAdmin:false,
+  kaviDecimals:18,
+  kaviSymbol:"KAVI",
+  marketRead:null,
+  marketWrite:null,
+  kaviRead:null,
+  kaviWrite:null,
+  kaviTokenAddr:null,
+  items:[],
+  myRequests:[],
+  pendingRequests:[],
+  admin:null,
+  pendingAdmin:null,
+  paused:false,
+  feesWallet1:null,
+  feesWallet2:null,
+  kaviUsdPair:null,
+  stablePairToken:null,
+  txBurnFeeEnabled:false,
+  maxFeeCap:null,
+  burnFee:null,
+  contractBalance:null,
+  referralBps:1000,
+  userReferrer:null,
+  referralLastScannedBlock:null,
+
+  fee1Bps:200,
+  fee2Bps:200,
+  burnBps:200,
+  bpsDenom:10000,
+  userAllowance:null,
+  userBalance:null,
+  storeName:"",
+  kaviPerUsd:null,
+  deactivatedItems:[],
+  deactivatedItemsLoaded:false,
+  processedRequests:[],
+  pendingBuyerHasRef:{},
+  processedBuyerHasRef:{},
+  _tokenInfoLoaded:false
+};
+
+function short(addr){ if(!addr) return "—"; return addr.slice(0,6)+"…"+addr.slice(-4); }
+function fmtKavi(bn){
+  if(bn===null||bn===undefined) return "—";
+  try{
+    const s = ethers.utils.formatUnits(bn, state.kaviDecimals);
+    const n = parseFloat(s);
+    return n.toLocaleString(undefined,{maximumFractionDigits:4}) + " " + state.kaviSymbol;
+  }catch(e){ return "—"; }
+}
+function fmtKaviPlain(bn){
+  if(bn===null||bn===undefined) return "0";
+  try{
+    const s = ethers.utils.formatUnits(bn, state.kaviDecimals);
+    return parseFloat(s).toLocaleString(undefined,{maximumFractionDigits:4});
+  }catch(e){ return "0"; }
+}
+function fmtINR(paiseBn){
+  try{
+    const paise = ethers.BigNumber.isBigNumber(paiseBn) ? paiseBn.toNumber() : Number(paiseBn);
+    return "₹" + (paise/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }catch(e){ return "₹—"; }
+}
+function calcUserReceives(kaviAmountBn, withReferral){
+  if(!kaviAmountBn || kaviAmountBn.isZero()) return ethers.BigNumber.from(0);
+  const deductions = state.fee1Bps + state.fee2Bps + state.burnBps +
+    (withReferral ? state.referralBps : 0);
+  return kaviAmountBn.mul(state.bpsDenom - deductions).div(state.bpsDenom);
+}
+
+function hasReferrer(){
+  return state.userReferrer &&
+    state.userReferrer !== ethers.constants.AddressZero;
+}
+
+function rewardSeenStorageKey(){
+  return state.account ? `kavi_seen_rewards_${MARKETPLACE_ADDRESS}_${state.account.toLowerCase()}` : null;
+}
+
+// Notifies the buyer with a toast when one of their purchase requests has been
+// approved (reward sent) since the last time we checked. Uses localStorage so
+// a reward is only announced once per wallet, and the very first time a wallet
+// is seen we baseline silently (no retroactive spam for old, already-approved rewards).
+function notifyNewRewards(){
+  if(!state.account || !state.myRequests) return;
+  const key = rewardSeenStorageKey();
+  if(!key) return;
+  const approvedIds = state.myRequests
+    .filter(r=> Number(r.status) === 1)
+    .map(r=> r.id.toString());
+
+  let raw = null;
+  try{ raw = localStorage.getItem(key); }catch(e){ return; }
+
+  if(raw === null){
+    try{ localStorage.setItem(key, JSON.stringify(approvedIds)); }catch(e){}
+    return;
+  }
+
+  let seen;
+  try{ seen = new Set(JSON.parse(raw) || []); }catch(e){ seen = new Set(); }
+
+  const newlyApproved = state.myRequests.filter(r=>
+    Number(r.status) === 1 && !seen.has(r.id.toString())
+  );
+  if(newlyApproved.length === 0) return;
+
+  const userRef = hasReferrer();
+  newlyApproved.forEach(r=>{
+    const item = state.items.find(it => it.id.toString() === r.itemId.toString());
+    const itemName = item ? item.name : ("item #" + r.itemId.toString());
+    const amt = calcUserReceives(r.kaviAmount, userRef);
+    toast(`🎉 You received ${fmtKavi(amt)} reward from ${state.storeName || "this store"} for "${itemName}"`, "success");
+  });
+
+  approvedIds.forEach(id=> seen.add(id));
+  try{ localStorage.setItem(key, JSON.stringify([...seen])); }catch(e){}
+}
+
+function referralSeenStorageKey(){
+  return state.account ? `kavi_seen_referral_${MARKETPLACE_ADDRESS}_${state.account.toLowerCase()}` : null;
+}
+
+// Scans ReferralRewarded events where this wallet is the referrer. Tries one
+// wide query first (fast on most public RPCs); if the node rejects a wide
+// block range, falls back to querying in smaller chunks going back in time.
+
+// Discovers the widest block range this RPC node will accept for eth_getLogs
+// by probing progressively smaller sizes (public nodes commonly cap this
+// between ~1,000 and ~50,000 blocks per call).
+async function findMaxLogRange(filter, latest, earliestNeeded){
+  const candidates = [50000, 20000, 10000, 5000, 2000, 1000, 500];
+  for(const size of candidates){
+    const from = Math.max(earliestNeeded, latest - size + 1);
+    try{
+      await state.marketRead.queryFilter(filter, from, latest);
+      return size;
+    }catch(e){ /* try a smaller size */ }
+  }
+  return 500;
+}
+
+async function scanReferralEvents(fromBlock, toBlock, onProgress){
+  if(!state.marketRead) return { events: [], complete: true };
+  const filter = state.marketRead.filters.ReferralRewarded(null, state.account);
+
+  try{
+    const events = await state.marketRead.queryFilter(filter, fromBlock, toBlock);
+    return { events, complete: true };
+  }catch(e){
+    const chunkSize = await findMaxLogRange(filter, toBlock, fromBlock);
+    let events = [];
+    let end = toBlock;
+    let chunksLeft = 600; // generous cap so we can walk back through months of blocks
+    let complete = true;
+    while(end >= fromBlock && chunksLeft > 0){
+      const start = Math.max(fromBlock, end - chunkSize + 1);
+      try{
+        const found = await state.marketRead.queryFilter(filter, start, end);
+        events = found.concat(events);
+      }catch(e2){
+        console.error("scanReferralEvents chunk failed", e2);
+        complete = false;
+        break;
+      }
+      if(onProgress) onProgress(start, fromBlock, toBlock);
+      end = start - 1;
+      chunksLeft--;
+    }
+    if(end >= fromBlock && chunksLeft <= 0) complete = false;
+    return { events, complete };
+  }
+}
+
+// Lightweight incremental check used on every refresh/poll — only scans
+// blocks since the last check, and toasts when new referral income arrives.
+async function checkNewReferralIncome(){
+  if(!state.marketRead || !state.account) return;
+  try{
+    const provider = getActiveReadProvider();
+    const latest = await provider.getBlockNumber();
+    if(state.referralLastScannedBlock === null){
+      // First time this session — just set the baseline instantly (no
+      // historical scan), so old/past income isn't retroactively announced.
+      state.referralLastScannedBlock = latest;
+      return;
+    }
+    if(latest <= state.referralLastScannedBlock) return;
+    const fromBlock = state.referralLastScannedBlock + 1;
+    const { events } = await scanReferralEvents(fromBlock, latest);
+    state.referralLastScannedBlock = latest;
+    if(events.length > 0){
+      checkAndNotifyReferralEvents(events, false);
+    }
+  }catch(e){ console.error("checkNewReferralIncome", e); }
+}
+
+// Shows a toast for genuinely new referral income. On the very first time we
+// ever check a wallet, we baseline silently so past income isn't re-announced.
+function checkAndNotifyReferralEvents(events, isInitialLoad){
+  const key = referralSeenStorageKey();
+  if(!key || events.length === 0) return;
+
+  let raw = null;
+  try{ raw = localStorage.getItem(key); }catch(e){ return; }
+
+  const eventIds = events.map(ev => ev.transactionHash + ":" + ev.logIndex);
+
+  if(isInitialLoad && raw === null){
+    try{ localStorage.setItem(key, JSON.stringify(eventIds)); }catch(e){}
+    return;
+  }
+
+  let seen;
+  try{ seen = new Set(JSON.parse(raw || "[]")); }catch(e){ seen = new Set(); }
+
+  const newOnes = events.filter((ev,i)=> !seen.has(eventIds[i]));
+  newOnes.forEach(ev=>{
+    const amt = fmtKavi(ev.args.amount);
+    toast(`💰 New referral income: you earned ${amt} — someone you referred just made a purchase!`, "success", ev.transactionHash);
+  });
+
+  eventIds.forEach(id=> seen.add(id));
+  try{ localStorage.setItem(key, JSON.stringify([...seen])); }catch(e){}
+}
+
+
+function fmtUsd1e18(usd1e18Bn){
+  try{
+    const n = parseFloat(ethers.utils.formatUnits(usd1e18Bn, 18));
+    return "$" + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }catch(e){ return "$—"; }
+}
+function estimateKaviForUsd1e18(usd1e18Bn){
+  if(!state.kaviPerUsd || !usd1e18Bn) return null;
+  try{
+    return usd1e18Bn.mul(state.kaviPerUsd).div(ethers.utils.parseUnits("1", 18));
+  }catch(e){ return null; }
+}
+function fmtTime(bn){
+  try{
+    const n = ethers.BigNumber.isBigNumber(bn) ? bn.toNumber() : Number(bn);
+    if(!n) return "—";
+    return new Date(n*1000).toLocaleString();
+  }catch(e){ return "—"; }
+}
+function flashEl(el){
+  el.classList.remove("flash");
+  void el.offsetWidth;
+  el.classList.add("flash");
+}
+function explorerAddr(a){ return BSCSCAN + "/address/" + a; }
+function explorerTx(h){ return BSCSCAN + "/tx/" + h; }
+
+function toast(msg, type, txHash){
+  const stack = document.getElementById("toastStack");
+  const el = document.createElement("div");
+  el.className = "toast" + (type==="error"?" error":type==="success"?" success":"");
+  const p = document.createElement("div");
+  p.textContent = msg;
+  el.appendChild(p);
+  if(txHash){
+    const a = document.createElement("a");
+    a.href = explorerTx(txHash); a.target="_blank"; a.rel="noopener";
+    a.textContent = "View on BscScan";
+    el.appendChild(a);
+  }
+  stack.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 7000);
+}
+
+function friendlyError(err){
+  try{
+    if(err && err.errorName && ERROR_MESSAGES[err.errorName]) return ERROR_MESSAGES[err.errorName];
+    const msg = (err && (err.reason || err.message)) || "";
+    for(const key in ERROR_MESSAGES){
+      if(msg.indexOf(key) !== -1) return ERROR_MESSAGES[key];
+    }
+    if(err && err.code === 4001) return "Transaction was rejected in your wallet.";
+    if(msg) return msg.length > 140 ? msg.slice(0,140)+"…" : msg;
+  }catch(e){}
+  return "Transaction failed. See console for details.";
+}
+
+async function initReadProvider(){
+  for(const url of RPC_URLS){
+    try{
+      const p = new ethers.providers.JsonRpcProvider(url);
+      await p.getBlockNumber();
+      state.readProvider = p;
+      return p;
+    }catch(e){ /* try next */ }
+  }
+  throw new Error("No public BSC RPC reachable");
+}
+
+function getActiveReadProvider(){
+  return state.provider || state.readProvider;
+}
+
+function buildReadContracts(){
+  const prov = getActiveReadProvider();
+  if(!prov){ state.marketRead = null; return; }
+  state.marketRead = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, prov);
+}
+
+// AppKit's CDN bundle (dist/appkit.js) is an ES module, built specifically for
+// plain <script type="module"> usage without a bundler. We inject a small
+// module script that does the import and hands the exports back to our
+// regular (non-module) code via a global.
+function loadAppKitLib(){
+  if(window.__appKitLibPromise) return window.__appKitLibPromise;
+  window.__appKitLibPromise = new Promise(function(resolve, reject){
+    const s = document.createElement("script");
+    s.type = "module";
+    s.textContent =
+      'import { createAppKit, WagmiAdapter } from "https://cdn.jsdelivr.net/npm/@reown/appkit-cdn@1.8.21/dist/appkit.js";' +
+      'window.__AppKitLib = { createAppKit, WagmiAdapter };' +
+      'window.dispatchEvent(new Event("__appkit_lib_ready"));';
+    window.addEventListener("__appkit_lib_ready", function handler(){
+      window.removeEventListener("__appkit_lib_ready", handler);
+      resolve(window.__AppKitLib);
+    });
+    s.onerror = function(){ reject(new Error("Failed to load the wallet-connect library. Check your internet connection and try again.")); };
+    document.head.appendChild(s);
+  });
+  return window.__appKitLibPromise;
+}
+
+const BSC_NETWORK_FOR_APPKIT = {
+  id: CHAIN_ID,
+  name: "BNB Smart Chain",
+  nativeCurrency: { name:"BNB", symbol:"BNB", decimals:18 },
+  rpcUrls: { default: { http: [RPC_URLS[0]] } },
+  blockExplorers: { default: { name:"BscScan", url: BSCSCAN } }
+};
+
+async function connectViaWalletConnect(){
+  if(!WALLETCONNECT_PROJECT_ID || WALLETCONNECT_PROJECT_ID === "YOUR_WALLETCONNECT_PROJECT_ID"){
+    toast("No wallet extension detected, and WalletConnect isn't configured on this page yet. Please open this page inside your wallet app's built-in browser (Trust Wallet, MetaMask, etc.) instead.", "error");
+    return;
+  }
+  try{
+    toast("Opening wallet connect…", "info");
+    const { createAppKit, WagmiAdapter } = await loadAppKitLib();
+
+    if(!state._appKitModal){
+      const wagmiAdapter = new WagmiAdapter({
+        networks: [BSC_NETWORK_FOR_APPKIT],
+        projectId: WALLETCONNECT_PROJECT_ID
+      });
+      state._appKitModal = createAppKit({
+        adapters: [wagmiAdapter],
+        networks: [BSC_NETWORK_FOR_APPKIT],
+        projectId: WALLETCONNECT_PROJECT_ID,
+        metadata:{
+          name: state.storeName || "Kavi Reward System",
+          description: "Kavi Reward System storefront",
+          url: location.origin + location.pathname,
+          icons: []
+        }
+      });
+    }
+    const modal = state._appKitModal;
+
+    await new Promise(function(resolve, reject){
+      let settled = false;
+      const timeout = setTimeout(function(){
+        if(!settled){ settled = true; reject(new Error("Connection timed out. Please try again.")); }
+      }, 180000);
+      const unsub = modal.subscribeAccount(function(account){
+        if(!settled && account && account.isConnected && account.address){
+          settled = true;
+          clearTimeout(timeout);
+          if(unsub) unsub();
+          resolve();
+        }
+      }, "eip155");
+      modal.open();
+    });
+
+    const wcProvider = modal.getWalletProvider();
+    if(!wcProvider) throw new Error("Could not get a wallet connection. Please try again.");
+    state.wcProvider = wcProvider;
+    state.provider = new ethers.providers.Web3Provider(wcProvider, "any");
+    state.signer = state.provider.getSigner();
+    state.account = (await state.signer.getAddress());
+    state.marketWrite = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, state.signer);
+    buildReadContracts();
+    renderWalletUI();
+    await Promise.all([loadTokenInfo(), refreshAll()]);
+    toast("Wallet connected", "success");
+    maybeShowReferralSetupPopup();
+  }catch(e){
+    console.error(e);
+    if(e && (e.message === "User rejected the request" || /reject/i.test(e.message||""))){
+      toast("Connection request was rejected.", "error");
+    } else {
+      toast(friendlyError(e), "error");
+    }
+  }
+}
+
+async function connectWallet(){
+  if(!window.ethereum){
+    // No injected wallet extension/browser (typical when opening this page in a
+    // normal mobile browser like Chrome/Safari, or a desktop browser with no
+    // wallet extension). Fall back to WalletConnect so an externally installed
+    // mobile wallet app (Trust Wallet, MetaMask, etc.) can connect instead.
+    await connectViaWalletConnect();
+    return;
+  }
+  try{
+    await window.ethereum.request({ method:"eth_requestAccounts" });
+    state.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    const network = await state.provider.getNetwork();
+    if(network.chainId !== CHAIN_ID){
+      await switchNetwork();
+      state.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    }
+    state.signer = state.provider.getSigner();
+    state.account = (await state.signer.getAddress());
+    state.marketWrite = new ethers.Contract(MARKETPLACE_ADDRESS, MARKETPLACE_ABI, state.signer);
+    buildReadContracts();
+    renderWalletUI();
+    await Promise.all([loadTokenInfo(), refreshAll()]);
+    toast("Wallet connected", "success");
+    maybeShowReferralSetupPopup();
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+  }
+}
+
+async function switchNetwork(){
+  try{
+    await window.ethereum.request({ method:"wallet_switchEthereumChain", params:[{chainId:CHAIN_ID_HEX}] });
+  }catch(switchErr){
+    if(switchErr && switchErr.code === 4902){
+      await window.ethereum.request({
+        method:"wallet_addEthereumChain",
+        params:[{
+          chainId: CHAIN_ID_HEX,
+          chainName: "BNB Smart Chain",
+          nativeCurrency:{ name:"BNB", symbol:"BNB", decimals:18 },
+          rpcUrls:["https://bsc-dataseed.binance.org/"],
+          blockExplorerUrls:["https://bscscan.com"]
+        }]
+      });
+    } else {
+      throw switchErr;
+    }
+  }
+}
+
+function disconnectWallet(){
+  if(state._appKitModal){
+    try{ state._appKitModal.disconnect && state._appKitModal.disconnect("eip155"); }catch(e){ console.error("appKit disconnect", e); }
+  }
+  state.wcProvider = null;
+  state.provider = null;
+  state.signer = null;
+  state.account = null;
+  state.isAdmin = false;
+  state.isPendingAdmin = false;
+  state.marketWrite = null;
+  state.kaviWrite = null;
+  state.userAllowance = null;
+  state.userBalance = null;
+  state.deactivatedItems = [];
+  state.deactivatedItemsLoaded = false;
+  state.processedRequests = [];
+  state._tokenInfoLoaded = false;
+  state.referralLastScannedBlock = null;
+  buildReadContracts();
+  renderWalletUI();
+  renderOrders();
+  renderAdminVisibility();
+  toast("Disconnected (local view only — your wallet extension may still be connected)", "info");
+}
+
+function renderWalletUI(){
+  const netPill = document.getElementById("netPill");
+  const netPillText = document.getElementById("netPillText");
+  const walletArea = document.getElementById("walletArea");
+
+  if(state.account){
+    netPill.className = "net-pill ok";
+    netPillText.textContent = "BNB Smart Chain";
+  } else if(!window.ethereum){
+    netPill.className = "net-pill bad";
+    netPillText.textContent = "No wallet";
+  } else {
+    netPill.className = "net-pill";
+    netPillText.textContent = "Wallet not connected";
+  }
+
+  walletArea.innerHTML = "";
+  if(state.account){
+    const chip = document.createElement("div");
+    chip.className = "acct-chip";
+    chip.innerHTML = '<span class="mono">'+short(state.account)+'</span>' + (state.isAdmin ? '<span class="admin-badge">Admin</span>' : '');
+    const disc = document.createElement("button");
+    disc.className = "btn btn-ghost btn-sm";
+    disc.textContent = "Disconnect";
+    disc.onclick = disconnectWallet;
+    walletArea.appendChild(chip);
+    walletArea.appendChild(disc);
+  } else {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-accent";
+    btn.id = "connectBtn";
+    btn.textContent = "Connect wallet";
+    btn.onclick = connectWallet;
+    walletArea.appendChild(btn);
+  }
+}
+
+async function loadTokenInfo(){
+  if(!state.marketRead) return;
+  try{
+    state.kaviTokenAddr = await state.marketRead.kaviToken();
+    const tokenRead = new ethers.Contract(state.kaviTokenAddr, ERC20_ABI, getActiveReadProvider());
+    if(state.signer){
+      state.kaviWrite = new ethers.Contract(state.kaviTokenAddr, ERC20_ABI, state.signer);
+    }
+    const calls = [
+      tokenRead.decimals().catch(()=>18),
+      tokenRead.symbol().catch(()=>"KAVI"),
+      state.account ? tokenRead.balanceOf(state.account) : Promise.resolve(null),
+      state.account ? tokenRead.allowance(state.account, MARKETPLACE_ADDRESS) : Promise.resolve(null)
+    ];
+    const [decimals, symbol, balance, allowance] = await Promise.all(calls);
+    state.kaviDecimals = decimals;
+    state.kaviSymbol = symbol;
+    if(balance !== null) state.userBalance = balance;
+    if(allowance !== null) state.userAllowance = allowance;
+    state._tokenInfoLoaded = true;
+  }catch(e){ console.error("loadTokenInfo", e); }
+}
+
+async function refreshUserTokenBalances(){
+  if(!state.account || !state.kaviTokenAddr) return;
+  try{
+    const tokenRead = new ethers.Contract(state.kaviTokenAddr, ERC20_ABI, getActiveReadProvider());
+    const [balance, allowance, referrer] = await Promise.all([
+      tokenRead.balanceOf(state.account),
+      tokenRead.allowance(state.account, MARKETPLACE_ADDRESS),
+      state.marketRead ? state.marketRead.referrers(state.account) : Promise.resolve(ethers.constants.AddressZero)
+    ]);
+    state.userBalance = balance;
+    state.userAllowance = allowance;
+    state.userReferrer = referrer;
+  }catch(e){ console.error("refreshUserTokenBalances", e); }
+}
+
+async function ensureAllowance(requiredBn){
+  if(!requiredBn || requiredBn.isZero()) return true;
+  if(!state.kaviWrite) { toast("Connect your wallet first.", "error"); return false; }
+  const tokenRead = new ethers.Contract(state.kaviTokenAddr, ERC20_ABI, getActiveReadProvider());
+  const current = await tokenRead.allowance(state.account, MARKETPLACE_ADDRESS);
+  if(current.gte(requiredBn)) return true;
+  try{
+    toast("Approving KAVI for the marketplace contract…", "info");
+    const tx = await state.kaviWrite.approve(MARKETPLACE_ADDRESS, ethers.constants.MaxUint256);
+    toast("Approval submitted, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("KAVI approved", "success", tx.hash);
+    state.userAllowance = await tokenRead.allowance(state.account, MARKETPLACE_ADDRESS);
+    return true;
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+    return false;
+  }
+}
+
+// Every state-changing call on the contract charges a small KAVI burn fee via
+// _chargeFee(), which needs an ERC20 allowance from the connected wallet to
+// the marketplace contract. Rather than a separate "Approve" button, each
+// action button itself checks the allowance via ensureAllowance() first and
+// prompts the approve transaction automatically before proceeding.
+
+async function loadMarketplaceData(){
+  if(!state.marketRead) return;
+  try{
+    const kaviTokenAddr = await state.marketRead.kaviToken();
+    const tokenReaderForBal = new ethers.Contract(kaviTokenAddr, ERC20_ABI, getActiveReadProvider());
+    const [adminAddr, pendingAdminAddr, paused, feesWallet1, feesWallet2, kaviUsdPair, stablePairToken, txBurnFeeEnabled, maxFeeCap, balance, burnFee, fee1Bps, fee2Bps, burnBps, referralBps, bpsDenom, storeName, kaviPerUsd] = await Promise.all([
+      state.marketRead.admin(),
+      state.marketRead.pendingAdmin(),
+      state.marketRead.paused(),
+      state.marketRead.feesWallet1(),
+      state.marketRead.feesWallet2(),
+      state.marketRead.kaviUsdPair(),
+      state.marketRead.stablePairToken(),
+      state.marketRead.txBurnFeeEnabled(),
+      state.marketRead.maxTxBurnFeeInKavi(),
+      tokenReaderForBal.balanceOf(MARKETPLACE_ADDRESS),
+      state.marketRead.currentTxBurnFeeInKavi(),
+      state.marketRead.FEE1_BPS(),
+      state.marketRead.FEE2_BPS(),
+      state.marketRead.BURN_BPS(),
+      state.marketRead.REFERRAL_BPS(),
+      state.marketRead.BPS_DENOMINATOR(),
+      state.marketRead.storeName(),
+      state.marketRead.getKaviAmountForUsd(ethers.utils.parseUnits("1", 18)).catch(()=>null)
+    ]);
+    state.admin = adminAddr;
+    state.pendingAdmin = pendingAdminAddr;
+    state.paused = paused;
+    state.feesWallet1 = feesWallet1;
+    state.feesWallet2 = feesWallet2;
+    state.kaviUsdPair = kaviUsdPair;
+    state.stablePairToken = stablePairToken;
+    state.txBurnFeeEnabled = txBurnFeeEnabled;
+    state.maxFeeCap = maxFeeCap;
+    state.contractBalance = balance;
+    state.burnFee = burnFee;
+    state.fee1Bps = fee1Bps.toNumber();
+    state.fee2Bps = fee2Bps.toNumber();
+    state.burnBps = burnBps.toNumber();
+    state.referralBps = referralBps.toNumber();
+    state.bpsDenom = bpsDenom.toNumber();
+    state.storeName = storeName;
+    state.kaviPerUsd = kaviPerUsd;
+
+    if(state.account){
+      state.isAdmin = state.account.toLowerCase() === adminAddr.toLowerCase();
+      state.isPendingAdmin = pendingAdminAddr !== ethers.constants.AddressZero && state.account.toLowerCase() === pendingAdminAddr.toLowerCase();
+    }
+  }catch(e){ console.error("loadMarketplaceData", e); }
+}
+
+async function loadItems(){
+  if(!state.marketRead) return;
+  try{
+    state.items = await state.marketRead.getAllActiveItems();
+  }catch(e){ console.error("loadItems", e); state.items = []; }
+}
+
+async function loadUserRequests(){
+  if(!state.marketRead || !state.account) { state.myRequests = []; return; }
+  try{
+    state.myRequests = await state.marketRead.getUserRequests(state.account);
+  }catch(e){ console.error("loadUserRequests", e); state.myRequests = []; }
+}
+
+async function loadReferrersFor(addresses){
+  if(!state.marketRead || !addresses || addresses.length === 0) return {};
+  const unique = [...new Set(addresses.map(a=>a.toLowerCase()))];
+  const results = await Promise.all(unique.map(addr =>
+    state.marketRead.referrers(addr).catch(()=> ethers.constants.AddressZero)
+  ));
+  const map = {};
+  unique.forEach((addr,i)=>{ map[addr] = !!(results[i] && results[i] !== ethers.constants.AddressZero); });
+  return map;
+}
+
+async function loadPendingRequests(){
+  if(!state.marketRead || !state.isAdmin) { state.pendingRequests = []; state.pendingBuyerHasRef = {}; return; }
+  try{
+    state.pendingRequests = await state.marketRead.getPendingRequests();
+    state.pendingBuyerHasRef = await loadReferrersFor(state.pendingRequests.map(r=>r.buyer));
+  }catch(e){ console.error("loadPendingRequests", e); state.pendingRequests = []; state.pendingBuyerHasRef = {}; }
+}
+
+function renderWelcomePopupText(){
+  const titleEl = document.getElementById("welcomeModalTitle");
+  const bodyEl = document.getElementById("welcomeModalBody");
+  if(!titleEl || !bodyEl) return;
+  const name = state.storeName || "Our Store";
+  titleEl.textContent = `Welcome to ${name}`;
+  bodyEl.textContent = `Buy more Products/Services from ${name} and get More Kavi Token Rewards. With Kavi Token you can Buy more products/Services from our Store.`;
+}
+
+function renderStoreName(){
+  const row = document.getElementById("storeNameRow");
+  const textEl = document.getElementById("storeNameText");
+  const editBtn = document.getElementById("editStoreNameBtn");
+
+  editBtn.hidden = !state.isAdmin;
+
+  renderWelcomePopupText();
+
+  if(state.storeName){
+    textEl.textContent = "Welcome to " + state.storeName;
+    textEl.classList.remove("placeholder");
+    row.hidden = false;
+  } else if(state.isAdmin){
+    textEl.textContent = "Add your store name";
+    textEl.classList.add("placeholder");
+    row.hidden = false;
+  } else {
+    row.hidden = true;
+  }
+}
+
+document.getElementById("editStoreNameBtn").addEventListener("click", async ()=>{
+  if(!state.marketWrite){ toast("Connect your wallet first.", "error"); return; }
+  const name = prompt("Store / business name (shown on-chain to everyone who opens this page)", state.storeName || "");
+  if(name === null) return;
+  const trimmed = name.trim();
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Updating store name…", "info");
+    const tx = await state.marketWrite.setStoreName(trimmed);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    state.storeName = trimmed;
+    renderStoreName();
+    toast("Store name updated", "success", tx.hash);
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+  }
+});
+
+async function refreshAll(){
+  if(!state.marketRead){
+    if(!state.provider){
+      try{ await initReadProvider(); }catch(e){ /* still no public RPC reachable, will retry next cycle */ }
+    }
+    buildReadContracts();
+  }
+
+  const fetchTasks = [loadMarketplaceData(), loadItems()];
+  if(state.account){
+    fetchTasks.push(loadUserRequests());
+    if(state._tokenInfoLoaded){
+      fetchTasks.push(refreshUserTokenBalances());
+    }
+  }
+  await Promise.all(fetchTasks);
+
+  if(state.account){
+    notifyNewRewards();
+    checkNewReferralIncome();
+  }
+
+  if(state.account && (state.isAdmin || state.isPendingAdmin)){
+    await loadPendingRequests();
+  }
+
+  renderTicker();
+  renderCatalog();
+  renderOrders();
+  renderAdminVisibility();
+  if(state.isAdmin || state.isPendingAdmin){
+    renderAdminCatalog();
+    renderAdminRequests();
+    renderAdminTreasury();
+    renderAdminSettings();
+  }
+  renderStoreName();
+  renderWalletUI();
+}
+
+function renderTicker(){
+  const feeEl = document.getElementById("tkFee");
+  const userBalItem = document.getElementById("tkUserBalanceItem");
+  const userBalEl = document.getElementById("tkUserBalance");
+  const itemsEl = document.getElementById("tkItems");
+  const updEl = document.getElementById("tkUpdated");
+
+  const feeText = state.txBurnFeeEnabled ? fmtKavi(state.burnFee) : "disabled";
+  if(feeEl.textContent !== feeText){ feeEl.textContent = feeText; flashEl(feeEl); }
+
+  if(state.account){
+    userBalItem.hidden = false;
+    const userBalText = fmtKavi(state.userBalance);
+    if(userBalEl.textContent !== userBalText){ userBalEl.textContent = userBalText; flashEl(userBalEl); }
+  } else {
+    userBalItem.hidden = true;
+  }
+
+  itemsEl.textContent = state.items.length;
+  updEl.textContent = state.marketRead ? ("updated " + new Date().toLocaleTimeString()) : "no node — retrying";
+}
+
+function itemTypeLabel(t){ return Number(t)===1 ? "Service" : "Product"; }
+function itemTypePillClass(t){ return Number(t)===1 ? "pill-service" : "pill-product"; }
+function statusLabel(s){ return ["Pending","Approved","Rejected"][Number(s)] || "Unknown"; }
+function statusPillClass(s){ return ["pill-pending","pill-approved","pill-rejected"][Number(s)] || ""; }
+
+function renderCatalog(){
+  const grid = document.getElementById("catalogGrid");
+  const empty = document.getElementById("catalogEmpty");
+  grid.innerHTML = "";
+  if(state.items.length === 0){
+    empty.hidden = false;
+    empty.textContent = state.marketRead
+      ? "No active listings yet."
+      : "Loading listings… refreshing automatically.";
+    return;
+  }
+  empty.hidden = true;
+  state.items.forEach(item=>{
+    const estKavi = estimateKaviForUsd1e18(item.rewardUsd1e18);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      ${item.imageUrl ? `<img class="card-img" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.style.display='none'">` : ""}
+      <div class="card-body">
+        <span class="pill ${itemTypePillClass(item.itemType)}">${itemTypeLabel(item.itemType)}</span>
+        <h3 class="item-name">${escapeHtml(item.name)}</h3>
+        <p class="item-desc">${escapeHtml(item.description)}</p>
+        <div>
+          <div class="item-price">${fmtINR(item.priceInINR)}</div>
+          <div class="item-price-label">reference price</div>
+          ${!item.rewardUsd1e18.isZero() ? `<div class="reward-text">🎁 ${estKavi ? `≈ ${fmtKavi(calcUserReceives(estKavi, true))}` : fmtUsd1e18(item.rewardUsd1e18)}</div>` : ""}
+        </div>
+        <div class="card-foot">
+          <button class="btn btn-accent btn-sm" data-buy="${item.id.toString()}">Buy</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll("[data-buy]").forEach(btn=>{
+    btn.addEventListener("click", ()=> openBuyModal(btn.getAttribute("data-buy")));
+  });
+}
+
+function escapeHtml(s){
+  const d = document.createElement("div");
+  d.textContent = s == null ? "" : s;
+  return d.innerHTML;
+}
+
+function renderOrders(){
+  const prompt = document.getElementById("ordersConnectPrompt");
+  const list   = document.getElementById("ordersList");
+  const hint   = document.getElementById("ordersHint");
+  const refPanel = document.getElementById("referralPanel");
+  const refStatus = document.getElementById("referralStatus");
+  list.innerHTML = "";
+
+  if(!state.account){
+    prompt.hidden = true;
+    refPanel.hidden = true;
+    hint.textContent = "";
+    return;
+  }
+
+  prompt.hidden = true;
+
+  const userRef = state.userReferrer && state.userReferrer !== ethers.constants.AddressZero;
+  const myRefLink = `${location.origin}${location.pathname}?ref=${state.account}`;
+
+  refPanel.hidden = false;
+  refStatus.innerHTML = `
+    <div class="field-row" style="flex-wrap:wrap;gap:12px;">
+      <div class="field" style="min-width:0;flex:1;">
+        <label>Your referral link (share this)</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" value="${escapeHtml(myRefLink)}" readonly style="flex:1;min-width:0;font-size:12px;color:var(--ink-soft);" />
+          <button class="btn btn-sm" id="copyRefLinkBtn">Copy</button>
+        </div>
+      </div>
+      ${!userRef ? `
+      <div class="field" style="min-width:220px;flex:1;">
+        <label>Set referrer</label>
+        <div style="display:flex;gap:6px;"><input type="text" id="referrerInput" placeholder="0x... (referrer address)" style="flex:1;min-width:0;" /><button class="btn btn-sm btn-accent" id="setReferrerBtn">Set</button></div>
+      </div>
+      ` : ""}
+    </div>
+    <p class="note" style="margin-top:4px;">When you refer someone to buy a product or service in this shop, you will earn a 10% commission in KAVI tokens.</p>
+  `;
+
+  document.getElementById("copyRefLinkBtn").addEventListener("click", ()=>{
+    navigator.clipboard.writeText(myRefLink);
+    toast("Referral link copied", "info");
+  });
+
+  if(!userRef){
+    const refInput = document.getElementById("referrerInput");
+    if(state._pendingRefFromUrl && state._pendingRefFromUrl !== state.account.toLowerCase()){
+      refInput.value = state._pendingRefFromUrl;
+    }
+    document.getElementById("setReferrerBtn").addEventListener("click", async ()=>{
+      const addr = document.getElementById("referrerInput").value.trim();
+      if(!ethers.utils.isAddress(addr)){ toast("Enter a valid wallet address.", "error"); return; }
+      if(!state.marketWrite){ toast("Connect your wallet first.", "error"); return; }
+      try{
+        if(state.txBurnFeeEnabled && state.burnFee){
+          const ok = await ensureAllowance(state.burnFee);
+          if(!ok) return;
+        }
+        toast("Setting referrer…", "info");
+        const tx = await state.marketWrite.setReferrer(addr);
+        toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+        await tx.wait();
+        toast("Referrer set", "success", tx.hash);
+        await refreshAll();
+      }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+    });
+  }
+
+  hint.textContent = state.myRequests.length + " request" + (state.myRequests.length===1?"":"s");
+  if(state.myRequests.length === 0){
+    const p = document.createElement("p");
+    p.className = "empty-state";
+    p.textContent = "You haven't made any purchase requests yet.";
+    list.appendChild(p);
+    return;
+  }
+
+  [...state.myRequests].reverse().forEach(req=>{
+    const item = state.items.find(it => it.id.toString() === req.itemId.toString());
+    const userAmt = calcUserReceives(req.kaviAmount, userRef);
+    const row = document.createElement("div");
+    row.className = "row-card";
+    row.innerHTML = `
+      <div class="row-top">
+        <span class="row-id">Request #${req.id.toString()}</span>
+        <span class="pill ${statusPillClass(req.status)}">${statusLabel(req.status)}</span>
+      </div>
+      <div class="row-meta">${item ? escapeHtml(item.name) : "Item #" + req.itemId.toString()}</div>
+      <div class="row-meta">Created ${fmtTime(req.createdAt)}</div>
+      ${Number(req.status)===0 && !req.kaviAmount.isZero() ? `<div class="row-meta">You will receive ≈ <span class="mono">${fmtKavi(userAmt)}</span> if approved</div>` : ""}
+      ${Number(req.status)===0 && req.kaviAmount.isZero() ? `<div class="row-meta">No KAVI reward on this listing · awaiting admin approval</div>` : ""}
+      ${Number(req.status)===1 ? `<div class="row-meta">You received <span class="mono">${fmtKavi(userAmt)}</span> · processed ${fmtTime(req.processedAt)}</div>` : ""}
+      ${Number(req.status)===2 ? `<div class="row-meta">Rejected · ${fmtTime(req.processedAt)}</div>` : ""}
+    `;
+    list.appendChild(row);
+  });
+}
+
+function renderAdminVisibility(){
+  const canSeeAdminTab = state.isAdmin || state.isPendingAdmin;
+  document.getElementById("adminTabBtn").hidden = !canSeeAdminTab;
+  if(!canSeeAdminTab && document.getElementById("tab-admin").classList.contains("active")){
+    setMainTab("marketplace");
+  }
+}
+
+function renderAdminCatalog(){
+  const body = document.getElementById("adminItemsBody");
+  body.innerHTML = "";
+  state.items.forEach(item=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="mono">${item.id.toString()}</td>
+      <td>${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" style="width:40px;height:28px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px;" onerror="this.style.display='none'">` : ""}${escapeHtml(item.name)}</td>
+      <td>${itemTypeLabel(item.itemType)}</td>
+      <td>${fmtINR(item.priceInINR)}</td>
+      <td class="mono">${fmtKavi(estimateKaviForUsd1e18(item.rewardUsd1e18))}</td>
+      <td>${item.isActive ? "Active" : "Inactive"}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" data-edit="${item.id.toString()}">Edit</button>
+        <button class="btn btn-sm" data-toggle="${item.id.toString()}">${item.isActive?"Deactivate":"Activate"}</button>
+        <button class="btn btn-sm btn-burn" data-del="${item.id.toString()}">Delete</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("[data-edit]").forEach(b=> b.addEventListener("click", ()=> promptEditItem(b.getAttribute("data-edit"))));
+  body.querySelectorAll("[data-toggle]").forEach(b=> b.addEventListener("click", ()=> handleToggleItem(b.getAttribute("data-toggle"))));
+  body.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=> handleDeleteItem(b.getAttribute("data-del"))));
+}
+
+function renderAdminRequests(){
+  const list = document.getElementById("pendingList");
+  const empty = document.getElementById("pendingEmpty");
+  const hint = document.getElementById("pendingCountHint");
+  const banner = document.getElementById("lowBalanceBanner");
+
+  list.innerHTML = "";
+  hint.textContent = state.pendingRequests.length + " pending";
+
+  if(state.pendingRequests.length === 0){
+    banner.hidden = true;
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  const contractBal = state.contractBalance || ethers.BigNumber.from(0);
+  const anyInsufficient = state.pendingRequests.some(r => r.kaviAmount && r.kaviAmount.gt(contractBal));
+  banner.hidden = !anyInsufficient;
+
+  state.pendingRequests.forEach(req=>{
+    const item = state.items.find(it => it.id.toString() === req.itemId.toString());
+    const insufficient = req.kaviAmount && req.kaviAmount.gt(contractBal);
+    const buyerHasRef = !!(state.pendingBuyerHasRef && state.pendingBuyerHasRef[req.buyer.toLowerCase()]);
+    const netAmt = calcUserReceives(req.kaviAmount, buyerHasRef);
+    const row = document.createElement("div");
+    row.className = "row-card";
+    row.innerHTML = `
+      <div class="row-top">
+        <span class="row-id">Request #${req.id.toString()}</span>
+        <span class="row-meta mono">${short(req.buyer)} <button class="copy-btn" data-copy="${req.buyer}">copy</button></span>
+      </div>
+      <div class="row-meta">${item ? escapeHtml(item.name) : "Item #" + req.itemId.toString()} · requested ${fmtTime(req.createdAt)}</div>
+      <div class="row-meta">Total leaving treasury: <span class="mono">${fmtKavi(req.kaviAmount)}</span>${insufficient ? ' <span style="color:var(--burn);font-size:12px;">· insufficient treasury balance</span>' : ""}</div>
+      ${!req.kaviAmount.isZero() ? `<div class="row-meta">Buyer receives (after fees, burn${buyerHasRef ? " and referral cut" : ""}): <span class="mono">${fmtKavi(netAmt)}</span></div>` : ""}
+      <div class="inline-form">
+        <button class="btn btn-accent btn-sm" data-approve="${req.id.toString()}" ${insufficient ? "disabled title=\"Deposit more KAVI to approve this\"" : ""}>Approve</button>
+        <button class="btn btn-burn btn-sm" data-reject="${req.id.toString()}">Reject</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("[data-copy]").forEach(b=> b.addEventListener("click", ()=>{
+    navigator.clipboard.writeText(b.getAttribute("data-copy"));
+    toast("Address copied", "info");
+  }));
+  list.querySelectorAll("[data-approve]").forEach(b=> b.addEventListener("click", ()=>{
+    handleApproveRequest(b.getAttribute("data-approve"));
+  }));
+  list.querySelectorAll("[data-reject]").forEach(b=> b.addEventListener("click", ()=> handleRejectRequest(b.getAttribute("data-reject"))));
+}
+
+function renderAdminTreasury(){
+  document.getElementById("treasuryBalance").textContent = fmtKavi(state.contractBalance);
+  document.getElementById("adminKaviBalance").textContent = fmtKavi(state.userBalance);
+}
+
+function renderAdminSettings(){
+  document.getElementById("pauseLabel").textContent = state.paused ? "Paused — buying and approvals are blocked" : "Active — buying and approvals are open";
+  document.getElementById("pauseToggle").classList.toggle("on", !state.paused);
+  document.getElementById("currentAdminAddr").textContent = state.admin;
+  document.getElementById("currentPendingAdmin").textContent = (state.pendingAdmin && state.pendingAdmin !== ethers.constants.AddressZero) ? state.pendingAdmin : "none";
+  document.getElementById("acceptAdminNote").hidden = !state.isPendingAdmin;
+  document.getElementById("pendingAdminBanner").hidden = !(state.isPendingAdmin && !state.isAdmin);
+}
+
+function setMainTab(name){
+  document.querySelectorAll(".tab-btn").forEach(b=> b.classList.toggle("active", b.getAttribute("data-tab")===name));
+  document.querySelectorAll(".tab-panel").forEach(p=> p.classList.toggle("active", p.id === "tab-"+name));
+}
+document.getElementById("mainTabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".tab-btn");
+  if(!btn || btn.hidden) return;
+  const tabName = btn.getAttribute("data-tab");
+  setMainTab(tabName);
+  if(tabName === "admin" && state.isAdmin && state.marketRead && !state.deactivatedItemsLoaded){
+    state.deactivatedItemsLoaded = true;
+    loadDeactivatedItems();
+  }
+});
+document.getElementById("lowBalGoTreasury").addEventListener("click", (e)=>{
+  e.preventDefault();
+  setMainTab("admin");
+  document.querySelectorAll(".subtab-btn").forEach(b=> b.classList.toggle("active", b.getAttribute("data-subtab")==="treasury"));
+  document.querySelectorAll(".subpanel").forEach(p=> p.classList.toggle("active", p.id==="admin-treasury"));
+});
+
+document.getElementById("adminSubTabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".subtab-btn");
+  if(!btn) return;
+  document.querySelectorAll(".subtab-btn").forEach(b=> b.classList.toggle("active", b===btn));
+  const name = btn.getAttribute("data-subtab");
+  document.querySelectorAll(".subpanel").forEach(p=> p.classList.toggle("active", p.id === "admin-"+name));
+});
+
+let buyModalItem = null;
+async function openBuyModal(itemId){
+  const item = state.items.find(it => it.id.toString() === itemId);
+  if(!item) return;
+  if(!state.account){ toast("Connect your wallet first.", "error"); return; }
+  buyModalItem = item;
+  document.getElementById("buyModalTitle").textContent = item.name;
+  document.getElementById("buyModalSub").textContent = itemTypeLabel(item.itemType);
+  document.getElementById("buyModalPrice").textContent = fmtINR(item.priceInINR);
+
+  const estKavi = estimateKaviForUsd1e18(item.rewardUsd1e18);
+  const userHasRef = hasReferrer();
+  const netKavi = estKavi ? calcUserReceives(estKavi, userHasRef) : null;
+  document.getElementById("buyModalReward").textContent = netKavi
+    ? `≈ ${fmtKavi(netKavi)}${userHasRef ? " (after 10% to your referrer)" : ""}`
+    : (item.rewardUsd1e18.isZero() ? "none" : fmtUsd1e18(item.rewardUsd1e18));
+
+  const burnFee = state.txBurnFeeEnabled ? state.burnFee : null;
+  document.getElementById("buyModalFee").textContent = burnFee ? fmtKavi(burnFee) : "disabled";
+
+  const hasEnough = !burnFee || !state.userBalance || state.userBalance.gte(burnFee);
+  document.getElementById("buyModalLowBalWarn").hidden = hasEnough;
+  document.getElementById("buyConfirmBtn").disabled = !hasEnough;
+
+  document.getElementById("buyModalOverlay").hidden = false;
+}
+document.getElementById("buyModalClose").addEventListener("click", ()=>{ document.getElementById("buyModalOverlay").hidden = true; });
+document.getElementById("buyModalOverlay").addEventListener("click", (e)=>{ if(e.target.id === "buyModalOverlay") e.currentTarget.hidden = true; });
+
+document.getElementById("buyConfirmBtn").addEventListener("click", async ()=>{
+  if(!buyModalItem) return;
+  const btn = document.getElementById("buyConfirmBtn");
+  btn.disabled = true;
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok){ btn.disabled = false; return; }
+    }
+    toast("Submitting purchase request…", "info");
+    const tx = await state.marketWrite.buyItem(buyModalItem.id);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("Purchase request created", "success", tx.hash);
+    document.getElementById("buyModalOverlay").hidden = true;
+    await refreshAll();
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+    btn.disabled = false;
+  }
+});
+
+async function handleApproveRequest(requestId){
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Approving request…", "info");
+    const tx = await state.marketWrite.approveRequest(requestId);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("✅ Reward sent — request approved and KAVI distributed", "success", tx.hash);
+    await refreshAll();
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+  }
+}
+
+async function handleRejectRequest(requestId){
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Rejecting request…", "info");
+    const tx = await state.marketWrite.rejectRequest(requestId);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("Request rejected", "success", tx.hash);
+    await refreshAll();
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+  }
+}
+
+document.getElementById("newItemImage").addEventListener("input", function(){
+  const url = this.value.trim();
+  const preview = document.getElementById("newItemImagePreview");
+  const img = document.getElementById("newItemImagePreviewImg");
+  if(url){ img.src = url; preview.style.display = "block"; }
+  else { preview.style.display = "none"; }
+});
+
+document.getElementById("addItemBtn").addEventListener("click", async ()=>{
+  const name = document.getElementById("newItemName").value.trim();
+  const desc = document.getElementById("newItemDesc").value.trim();
+  const price = parseFloat(document.getElementById("newItemPrice").value || "0");
+  const rewardStr = document.getElementById("newItemReward").value.trim() || "0";
+  const imageUrl = document.getElementById("newItemImage").value.trim();
+  const type = parseInt(document.querySelector('input[name="newItemType"]:checked').value, 10);
+  if(!name){ toast("Name is required.", "error"); return; }
+  if(!price || price <= 0){ toast("Enter a valid price.", "error"); return; }
+  if(isNaN(parseFloat(rewardStr)) || parseFloat(rewardStr) < 0){ toast("Enter a valid USD reward (0 is allowed).", "error"); return; }
+  const btn = document.getElementById("addItemBtn");
+  btn.disabled = true;
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok){ btn.disabled = false; return; }
+    }
+    const priceInPaise = Math.round(price * 100);
+    const rewardUsd1e18 = ethers.utils.parseUnits(rewardStr, 18);
+    toast("Adding listing…", "info");
+    const tx = await state.marketWrite.addItem(name, desc, priceInPaise, rewardUsd1e18, imageUrl, type);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("Listing added", "success", tx.hash);
+    document.getElementById("newItemName").value = "";
+    document.getElementById("newItemDesc").value = "";
+    document.getElementById("newItemPrice").value = "";
+    document.getElementById("newItemReward").value = "";
+    document.getElementById("newItemImage").value = "";
+    document.getElementById("newItemImagePreview").style.display = "none";
+    document.querySelector('input[name="newItemType"][value="0"]').checked = true;
+    await refreshAll();
+  }catch(e){
+    console.error(e);
+    toast(friendlyError(e), "error");
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+function promptEditItem(itemId, itemOverride){
+  const item = itemOverride || state.items.find(it => it.id.toString() === itemId);
+  if(!item) return;
+  const name = prompt("Name", item.name);
+  if(name===null) return;
+  const desc = prompt("Description", item.description);
+  if(desc===null) return;
+  const priceStr = prompt("Price in INR", (item.priceInINR.toNumber()/100).toFixed(2));
+  if(priceStr===null) return;
+  const price = parseFloat(priceStr);
+  if(!price || price<=0){ toast("Invalid price.", "error"); return; }
+  const rewardStr = prompt("Reward in USD (live rate, 0 allowed)", ethers.utils.formatUnits(item.rewardUsd1e18, 18));
+  if(rewardStr===null) return;
+  if(isNaN(parseFloat(rewardStr)) || parseFloat(rewardStr) < 0){ toast("Invalid USD reward.", "error"); return; }
+  const imageUrl = prompt("Image URL (optional, leave blank to keep current)", item.imageUrl || "");
+  if(imageUrl===null) return;
+  (async()=>{
+    try{
+      if(state.txBurnFeeEnabled && state.burnFee){
+        const ok = await ensureAllowance(state.burnFee);
+        if(!ok) return;
+      }
+      const rewardUsd1e18 = ethers.utils.parseUnits(rewardStr, 18);
+      toast("Updating listing…", "info");
+      const tx = await state.marketWrite.updateItem(item.id, name, desc, Math.round(price*100), rewardUsd1e18, imageUrl);
+      await tx.wait();
+      toast("Listing updated", "success", tx.hash);
+      await refreshAll();
+    }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+  })();
+}
+
+async function handleToggleItem(itemId){
+  const item = state.items.find(it => it.id.toString() === itemId);
+  if(!item) return;
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Updating status…", "info");
+    const tx = await state.marketWrite.setItemStatus(item.id, !item.isActive);
+    await tx.wait();
+    toast("Status updated", "success", tx.hash);
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+}
+
+async function handleDeleteItem(itemId){
+  if(!confirm("Permanently delete this listing? This cannot be undone.")) return;
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Deleting listing…", "info");
+    const tx = await state.marketWrite.deleteItem(itemId);
+    await tx.wait();
+    toast("Listing deleted", "success", tx.hash);
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+}
+
+async function loadDeactivatedItems(){
+  if(!state.marketRead) return;
+  const loadingEl = document.getElementById("deactivatedLoading");
+  const btn = document.getElementById("loadDeactivatedBtn");
+  loadingEl.hidden = false;
+  btn.disabled = true;
+  const BATCH_SIZE = 10;
+  const MAX_CONSECUTIVE_MISSES = 8;
+  const MAX_SCAN = 300;
+  const found = [];
+  let id = 1;
+  let consecutiveMisses = 0;
+  try{
+    while(id <= MAX_SCAN && consecutiveMisses < MAX_CONSECUTIVE_MISSES){
+      const batchIds = [];
+      for(let i=0; i<BATCH_SIZE && id<=MAX_SCAN; i++, id++){ batchIds.push(id); }
+      const results = await Promise.all(batchIds.map(async (itemId)=>{
+        const item = await state.marketRead.items(itemId);
+        return { exists: item && item.id && !item.id.isZero(), item };
+      }));
+      for(const r of results){
+        if(r.exists){
+          consecutiveMisses = 0;
+          if(!r.item.isActive) found.push(r.item);
+        } else {
+          consecutiveMisses++;
+          if(consecutiveMisses >= MAX_CONSECUTIVE_MISSES) break;
+        }
+      }
+    }
+    state.deactivatedItems = found;
+  }catch(e){
+    console.error("loadDeactivatedItems", e);
+  } finally {
+    loadingEl.hidden = true;
+    btn.disabled = false;
+  }
+  renderDeactivatedItems();
+}
+
+function renderDeactivatedItems(){
+  const body = document.getElementById("deactivatedItemsBody");
+  const empty = document.getElementById("deactivatedEmpty");
+  body.innerHTML = "";
+  if(!state.deactivatedItems || state.deactivatedItems.length === 0){
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+  state.deactivatedItems.forEach(item=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="mono">${item.id.toString()}</td>
+      <td>${escapeHtml(item.name)}</td>
+      <td>${itemTypeLabel(item.itemType)}</td>
+      <td>${fmtINR(item.priceInINR)}</td>
+      <td class="mono">${fmtKavi(estimateKaviForUsd1e18(item.rewardUsd1e18))}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" data-edit="${item.id.toString()}">Edit</button>
+        <button class="btn btn-sm btn-accent" data-reactivate="${item.id.toString()}">Reactivate</button>
+        <button class="btn btn-sm btn-burn" data-del="${item.id.toString()}">Delete</button>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll("[data-edit]").forEach(b=> b.addEventListener("click", ()=>{
+    const itemId = b.getAttribute("data-edit");
+    const item = state.deactivatedItems.find(it=>it.id.toString()===itemId);
+    if(item) promptEditItem(itemId, item);
+  }));
+  body.querySelectorAll("[data-reactivate]").forEach(b=> b.addEventListener("click", async ()=>{
+    const itemId = b.getAttribute("data-reactivate");
+    try{
+      toast("Reactivating…", "info");
+      const tx = await state.marketWrite.setItemStatus(itemId, true);
+      await tx.wait();
+      toast("Listing reactivated", "success", tx.hash);
+      state.deactivatedItems = state.deactivatedItems.filter(it=>it.id.toString()!==itemId);
+      renderDeactivatedItems();
+      await refreshAll();
+    }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+  }));
+  body.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", async ()=>{
+    const itemId = b.getAttribute("data-del");
+    if(!confirm("Permanently delete this listing? This cannot be undone.")) return;
+    try{
+      toast("Deleting listing…", "info");
+      const tx = await state.marketWrite.deleteItem(itemId);
+      await tx.wait();
+      toast("Listing deleted", "success", tx.hash);
+      state.deactivatedItems = state.deactivatedItems.filter(it=>it.id.toString()!==itemId);
+      renderDeactivatedItems();
+      await refreshAll();
+    }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+  }));
+}
+
+document.getElementById("loadDeactivatedBtn").addEventListener("click", ()=> loadDeactivatedItems());
+
+async function loadProcessedRequests(){
+  if(!state.marketRead) return;
+  const loadingEl = document.getElementById("processedLoading");
+  const btn = document.getElementById("loadProcessedBtn");
+  loadingEl.hidden = false;
+  btn.disabled = true;
+  try{
+    const results = await state.marketRead.getProcessedRequests();
+    state.processedRequests = [...results].sort((a,b)=> b.processedAt.toNumber() - a.processedAt.toNumber());
+    state.processedBuyerHasRef = await loadReferrersFor(state.processedRequests.map(r=>r.buyer));
+  }catch(e){
+    console.error("loadProcessedRequests", e);
+    state.processedRequests = [];
+    state.processedBuyerHasRef = {};
+  } finally{
+    loadingEl.hidden = true;
+    btn.disabled = false;
+  }
+  renderProcessedRequests();
+}
+
+function renderProcessedRequests(){
+  const list = document.getElementById("processedList");
+  const empty = document.getElementById("processedEmpty");
+  list.innerHTML = "";
+  if(!state.processedRequests || state.processedRequests.length === 0){
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+  state.processedRequests.forEach(req=>{
+    const item = state.items.find(it => it.id.toString() === req.itemId.toString());
+    const status = Number(req.status);
+    const userAmt = calcUserReceives(req.kaviAmount, !!(state.processedBuyerHasRef && state.processedBuyerHasRef[req.buyer.toLowerCase()]));
+    const row = document.createElement("div");
+    row.className = "row-card";
+    row.innerHTML = `
+      <div class="row-top">
+        <span class="row-id">Request #${req.id.toString()}</span>
+        <span class="pill ${statusPillClass(req.status)}">${statusLabel(req.status)}</span>
+      </div>
+      <div class="row-meta">${item ? escapeHtml(item.name) : "Item #" + req.itemId.toString()}</div>
+      <div class="row-meta mono" style="font-size:12px;">${req.buyer} <button class="copy-btn" data-copy="${req.buyer}">copy</button></div>
+      ${status === 1 ? `<div class="row-meta">Sent <span class="mono">${fmtKavi(userAmt)}</span> · ${fmtTime(req.processedAt)}</div>` : ""}
+      ${status === 2 ? `<div class="row-meta">Rejected · ${fmtTime(req.processedAt)}</div>` : ""}
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll("[data-copy]").forEach(b=> b.addEventListener("click", ()=>{
+    navigator.clipboard.writeText(b.getAttribute("data-copy"));
+    toast("Address copied", "info");
+  }));
+}
+
+document.getElementById("loadProcessedBtn").addEventListener("click", ()=> loadProcessedRequests());
+
+document.getElementById("depositBtn").addEventListener("click", async ()=>{
+  const v = document.getElementById("depositAmount").value;
+  if(!v || parseFloat(v)<=0){ toast("Enter a valid amount.", "error"); return; }
+  try{
+    const amt = ethers.utils.parseUnits(v, state.kaviDecimals);
+    const ok = await ensureAllowance(amt);
+    if(!ok) return;
+    toast("Depositing KAVI…", "info");
+    const tx = await state.marketWrite.depositTokens(amt);
+    await tx.wait();
+    toast("Deposit complete", "success", tx.hash);
+    document.getElementById("depositAmount").value = "";
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+});
+
+document.getElementById("pauseToggle").addEventListener("click", async ()=>{
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast(state.paused ? "Unpausing…" : "Pausing…", "info");
+    const tx = await state.marketWrite.setPaused(!state.paused);
+    await tx.wait();
+    toast("Status updated", "success", tx.hash);
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+});
+
+document.getElementById("proposeAdminBtn").addEventListener("click", async ()=>{
+  const addr = document.getElementById("proposeAdminAddr").value.trim();
+  if(!ethers.utils.isAddress(addr)){ toast("Enter a valid address.", "error"); return; }
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Proposing new admin…", "info");
+    const tx = await state.marketWrite.setPendingAdmin(addr);
+    await tx.wait();
+    toast("New admin proposed — they must accept the role", "success", tx.hash);
+    document.getElementById("proposeAdminAddr").value = "";
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+});
+
+async function acceptAdminRole(){
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Accepting admin role…", "info");
+    const tx = await state.marketWrite.acceptAdmin();
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("You are now the admin", "success", tx.hash);
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+}
+
+document.getElementById("acceptAdminBtn").addEventListener("click", acceptAdminRole);
+document.getElementById("acceptAdminBannerBtn").addEventListener("click", acceptAdminRole);
+
+function closeWelcomeModal(){
+  const el = document.getElementById("welcomeModalOverlay");
+  if(el) el.hidden = true;
+}
+document.getElementById("welcomeModalCloseBtn").addEventListener("click", closeWelcomeModal);
+document.getElementById("welcomeModalCloseX").addEventListener("click", closeWelcomeModal);
+document.getElementById("welcomeModalOverlay").addEventListener("click", (e)=>{
+  if(e.target.id === "welcomeModalOverlay") closeWelcomeModal();
+});
+
+async function maybeShowReferralSetupPopup(){
+  if(!state.account || state.isAdmin || state.isPendingAdmin || !state.marketRead) return;
+  try{
+    const referrer = await state.marketRead.referrers(state.account);
+    state.userReferrer = referrer;
+    if(referrer && referrer !== ethers.constants.AddressZero) return;
+  }catch(e){ console.error("maybeShowReferralSetupPopup", e); return; }
+
+  const overlay = document.getElementById("referralSetupModalOverlay");
+  const input = document.getElementById("referralSetupInput");
+  if(!overlay || !input) return;
+  input.value = (state._pendingRefFromUrl && state._pendingRefFromUrl !== state.account.toLowerCase())
+    ? state._pendingRefFromUrl : "";
+  overlay.hidden = false;
+}
+
+function closeReferralSetupModal(){
+  const el = document.getElementById("referralSetupModalOverlay");
+  if(el) el.hidden = true;
+}
+
+document.getElementById("referralSetupSkipBtn").addEventListener("click", closeReferralSetupModal);
+document.getElementById("referralSetupCloseX").addEventListener("click", closeReferralSetupModal);
+document.getElementById("referralSetupModalOverlay").addEventListener("click", (e)=>{
+  if(e.target.id === "referralSetupModalOverlay") closeReferralSetupModal();
+});
+document.getElementById("referralSetupConfirmBtn").addEventListener("click", async ()=>{
+  const addr = document.getElementById("referralSetupInput").value.trim();
+  if(!addr){ toast("Enter a referrer address, or tap Skip.", "error"); return; }
+  if(!ethers.utils.isAddress(addr)){ toast("Enter a valid wallet address.", "error"); return; }
+  if(addr.toLowerCase() === state.account.toLowerCase()){ toast("You cannot set yourself as your own referrer.", "error"); return; }
+  if(!state.marketWrite){ toast("Connect your wallet first.", "error"); return; }
+  try{
+    if(state.txBurnFeeEnabled && state.burnFee){
+      const ok = await ensureAllowance(state.burnFee);
+      if(!ok) return;
+    }
+    toast("Setting referrer…", "info");
+    const tx = await state.marketWrite.setReferrer(addr);
+    toast("Transaction sent, waiting for confirmation…", "info", tx.hash);
+    await tx.wait();
+    toast("Referrer set", "success", tx.hash);
+    closeReferralSetupModal();
+    await refreshAll();
+  }catch(e){ console.error(e); toast(friendlyError(e), "error"); }
+});
+
+document.getElementById("refreshBtn").addEventListener("click", ()=> refreshAll());
+document.getElementById("connectBtn").addEventListener("click", connectWallet);
+
+if(window.ethereum){
+  window.ethereum.on && window.ethereum.on("accountsChanged", (accounts)=>{
+    if(!accounts || accounts.length === 0){
+      disconnectWallet();
+    } else if(state.account && state.account.toLowerCase() !== String(accounts[0]).toLowerCase()){
+      connectWallet();
+    }
+  });
+  window.ethereum.on && window.ethereum.on("chainChanged", ()=>{
+    if(state.account){
+      connectWallet();
+    } else {
+      refreshAll();
+    }
+  });
+}
+
+async function boot(){
+  const urlRef = new URLSearchParams(location.search).get("ref");
+  if(urlRef && ethers.utils.isAddress(urlRef)){
+    state._pendingRefFromUrl = urlRef.toLowerCase();
+  }
+  await refreshAll();
+  if(!state.marketRead){
+    toast("Could not reach a public BSC node — listings will load once a node responds or you connect your wallet.", "error");
+  }
+  setInterval(refreshAll, 25000);
+}
+boot();
+
+}).catch(function(e){
+  console.error(e);
+  window.__showDiag && window.__showDiag("The app could not start: " + (e && e.message ? e.message : e));
+});
+</script>
+</body>
+</html>
