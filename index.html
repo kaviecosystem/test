@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kavi Ecosystem — Token Utilities</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --kavi-cyan: #00e5ff; --kavi-cyan2: #00b8d4; --kavi-blue: #1565c0;
+    --kavi-dark: #020b14; --kavi-dark2: #061422; --kavi-dark3: #0a1e30;
+    --kavi-border: rgba(0,229,255,0.12); --kavi-border-bright: rgba(0,229,255,0.5);
+    --text-primary: #e8f4ff; --text-secondary: rgba(232,244,255,0.55);
+  }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--kavi-dark); font-family: 'Rajdhani', sans-serif;
+    color: var(--text-primary); min-height: 100vh;
+    overflow-x: hidden; position: relative;
+  }
+  #stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .grid-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(rgba(0,180,255,0.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,180,255,0.04) 1px,transparent 1px);
+    background-size: 64px 64px;
+  }
+  .scanlines {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+  }
+  .wrapper { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
+
+  /* ── HEADER ─────────────────────────────────── */
+  header { padding: 24px 0 28px; }
+  .header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 20px;
+  }
+  .site-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(18px, 5vw, 50px);
+    font-weight: 900; letter-spacing: clamp(2px, 1.5vw, 8px); text-transform: uppercase;
+    background: linear-gradient(130deg, #00e5ff 0%, #fff 40%, #42a5f5 75%, #00b8d4 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    animation: shimmer 5s ease-in-out infinite; line-height: 1.1;
+  }
+  @keyframes shimmer { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.2)} }
+
+  .btn-connect {
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1px;
+    padding: 9px 14px; border-radius: 10px; text-transform: uppercase; font-weight: 700;
+    cursor: pointer; border: 1px solid rgba(0,229,255,0.45);
+    background: rgba(0,229,255,0.08); color: var(--kavi-cyan);
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    transition: all 0.25s; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    min-height: 40px;
+  }
+  .btn-connect:hover, .btn-connect:active { background: rgba(0,229,255,0.18); border-color: var(--kavi-cyan); }
+  .btn-connect.connected { border-color: rgba(0,230,118,0.5); background: rgba(0,230,118,0.08); color: #00e676; }
+  .connect-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: blink 2s ease-in-out infinite; flex-shrink: 0; }
+
+  .header-sub { text-align: center; }
+  .site-tagline { font-family: 'Space Mono', monospace; font-size: clamp(8px,2vw,11px); color: var(--kavi-cyan); letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; }
+  .header-divider { width: 180px; height: 1px; background: linear-gradient(90deg,transparent,var(--kavi-cyan),transparent); margin: 16px auto 0; }
+
+  /* ── STATS BAR ───────────────────────────────── */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(2,1fr);
+    margin: 0 0 20px; border: 1px solid var(--kavi-border);
+    border-radius: 12px; overflow: hidden; background: var(--kavi-dark2);
+  }
+  .stat-item { padding: 14px 8px; text-align: center; border-right: 1px solid var(--kavi-border); }
+  .stat-item:last-child { border-right: none; }
+  .stat-value { font-family: 'Orbitron', sans-serif; font-size: clamp(14px,3.5vw,20px); font-weight: 700; color: var(--kavi-cyan); display: block; }
+  .stat-label { font-size: clamp(7px,1.8vw,11px); font-family: 'Space Mono', monospace; color: var(--text-secondary); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 3px; display: block; }
+
+  /* ── INCOMING REF BANNER ─────────────────────── */
+  .ref-incoming {
+    margin: 0 0 16px; border: 1px solid rgba(0,230,118,0.3); border-radius: 14px;
+    background: linear-gradient(135deg,rgba(0,230,118,0.05),rgba(0,229,255,0.05));
+    padding: 12px 16px; display: none; align-items: center; gap: 12px; flex-wrap: wrap;
+    position: relative;
+  }
+  .ref-incoming::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,230,118,0.5),transparent); }
+  .ref-in-icon { font-size: 18px; flex-shrink: 0; }
+  .ref-in-text { flex: 1; min-width: 0; }
+  .ref-in-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; color: #00e676; text-transform: uppercase; margin-bottom: 3px; }
+  .ref-in-addr { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-primary); word-break: break-all; }
+  .ref-in-badge { background: rgba(0,230,118,0.12); color: #00e676; border: 1px solid rgba(0,230,118,0.3); font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1px; padding: 4px 9px; border-radius: 100px; text-transform: uppercase; flex-shrink: 0; }
+
+  /* ── WALLET PANEL ────────────────────────────── */
+  .wallet-panel {
+    margin: 0 0 24px; border-radius: 16px;
+    border: 1px solid rgba(0,229,255,0.2);
+    background: linear-gradient(135deg,rgba(0,229,255,0.04),rgba(21,101,192,0.07));
+    position: relative; overflow: hidden;
+  }
+  .wallet-panel::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(0,229,255,0.5),transparent); }
+
+  /* Disconnected */
+  .wp-disconnected { padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }
+  .wp-disc-row { display: flex; align-items: center; gap: 14px; }
+  .wp-disc-icon { font-size: 32px; flex-shrink: 0; opacity: 0.8; }
+  .wp-disc-title { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+  .wp-disc-sub { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--text-secondary); line-height: 1.7; }
+  .btn-connect-main {
+    font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+    padding: 14px 20px; border-radius: 10px; text-transform: uppercase; font-weight: 700;
+    cursor: pointer; background: linear-gradient(135deg,rgba(0,229,255,0.15),rgba(21,101,192,0.25));
+    color: var(--kavi-cyan); border: 1px solid rgba(0,229,255,0.45);
+    transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 48px; -webkit-tap-highlight-color: transparent;
+  }
+  .btn-connect-main:hover, .btn-connect-main:active { background: linear-gradient(135deg,rgba(0,229,255,0.25),rgba(21,101,192,0.38)); box-shadow: 0 0 20px rgba(0,229,255,0.2); }
+  .mm-icon { width: 22px; height: 22px; flex-shrink: 0; }
+  .no-metamask { padding: 0 18px 14px; font-family: 'Space Mono', monospace; font-size: 10px; color: #ffb300; display: none; gap: 8px; align-items: center; line-height: 1.5; }
+  .no-metamask a { color: #ffb300; }
+
+  /* Connected */
+  .wp-connected { display: none; }
+  .wp-top { display: flex; align-items: center; gap: 10px; padding: 16px 18px 12px; flex-wrap: wrap; }
+  .wp-wallet-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .wp-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg,#00e5ff,#1565c0); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; border: 2px solid rgba(0,229,255,0.4); }
+  .wp-addr-label { font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 2px; color: var(--text-secondary); text-transform: uppercase; }
+  .wp-addr { font-family: 'Space Mono', monospace; font-size: 11px; color: #00e676; margin-top: 2px; word-break: break-all; }
+  .wp-con-badge { background: rgba(0,230,118,0.1); color: #00e676; border: 1px solid rgba(0,230,118,0.3); font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 1px; padding: 4px 9px; border-radius: 100px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .con-dot { width: 5px; height: 5px; border-radius: 50%; background: #00e676; animation: blink 2s infinite; }
+  .btn-disconnect { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 0.8px; padding: 8px 12px; border-radius: 7px; border: 1px solid rgba(255,100,100,0.2); background: rgba(255,100,100,0.05); color: rgba(255,120,120,0.7); cursor: pointer; text-transform: uppercase; transition: all 0.2s; flex-shrink: 0; min-height: 36px; -webkit-tap-highlight-color: transparent; }
+  .btn-disconnect:active { border-color: rgba(255,100,100,0.5); background: rgba(255,100,100,0.12); }
+
+  /* Referral link box */
+  .wp-ref-box { border-top: 1px solid rgba(0,229,255,0.1); padding: 12px 18px 18px; }
+  .wp-ref-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1.5px; color: var(--kavi-cyan); text-transform: uppercase; margin-bottom: 10px; opacity: 0.75; }
+  .wp-ref-row { display: flex; flex-direction: column; gap: 8px; }
+  .ref-link-input {
+    width: 100%; font-family: 'Space Mono', monospace; font-size: 9px; color: var(--text-secondary);
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(0,229,255,0.15); border-radius: 8px;
+    padding: 11px 12px; outline: none; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; -webkit-user-select: all; user-select: all;
+  }
+  .btn-copy {
+    font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
+    padding: 13px 16px; border-radius: 8px; border: 1px solid rgba(0,229,255,0.35);
+    background: rgba(0,229,255,0.1); color: var(--kavi-cyan); cursor: pointer;
+    text-transform: uppercase; transition: all 0.2s; width: 100%; min-height: 48px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-copy:active { background: rgba(0,229,255,0.22); }
+  .btn-copy.copied { background: rgba(0,230,118,0.15); border-color: rgba(0,230,118,0.4); color: #00e676; }
+
+  /* ── SECTION SEP ─────────────────────────────── */
+  .sep { display: flex; align-items: center; gap: 12px; margin: 16px 0 22px; }
+  .sep-line { flex: 1; height: 1px; background: linear-gradient(90deg,var(--kavi-border-bright),transparent); }
+  .sep-line.r { background: linear-gradient(270deg,var(--kavi-border-bright),transparent); }
+  .sep-label { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px; color: var(--kavi-cyan); text-transform: uppercase; opacity: 0.8; white-space: nowrap; }
+
+  /* ── CARDS ───────────────────────────────────── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 14px; margin-bottom: 14px; }
+  .card {
+    position: relative; background: var(--kavi-dark2); border: 1px solid var(--kavi-border);
+    border-radius: 16px; padding: 20px 18px 18px; text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; overflow: hidden;
+    transition: transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s, box-shadow 0.3s;
+    animation: fade-up 0.5s ease both; -webkit-tap-highlight-color: transparent;
+  }
+  @keyframes fade-up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .card:nth-child(1){animation-delay:.05s} .card:nth-child(2){animation-delay:.12s}
+  .card:nth-child(3){animation-delay:.19s} .card:nth-child(4){animation-delay:.26s}
+  .card:nth-child(5){animation-delay:.33s} .card:nth-child(6){animation-delay:.40s}
+  .card:nth-child(7){animation-delay:.47s} .card:nth-child(8){animation-delay:.54s}
+  .card:nth-child(9){animation-delay:.61s}
+  .card::before { content:''; position:absolute; top:0; right:0; width:32px; height:32px; border-top:2px solid var(--accent,var(--kavi-cyan)); border-right:2px solid var(--accent,var(--kavi-cyan)); border-radius:0 16px 0 0; opacity:0.3; transition:opacity 0.3s,width 0.3s,height 0.3s; }
+  .card::after { content:''; position:absolute; bottom:0; left:0; width:24px; height:24px; border-bottom:1px solid var(--accent,var(--kavi-cyan)); border-left:1px solid var(--accent,var(--kavi-cyan)); border-radius:0 0 0 16px; opacity:0.15; }
+  .card:active { transform: translateY(-3px); border-color: var(--accent,var(--kavi-cyan)); box-shadow: 0 0 20px var(--glow,rgba(0,229,255,0.1)), 0 12px 30px rgba(0,0,0,0.4); }
+  .card-glow { position:absolute; inset:0; border-radius:16px; background:radial-gradient(ellipse at 50% 0%,var(--glow-bg,rgba(0,229,255,0.05)) 0%,transparent 70%); opacity:0; transition:opacity 0.4s; pointer-events:none; }
+  .card:active .card-glow { opacity:1; }
+
+  .card-category { font-family:'Space Mono',monospace; font-size:8px; letter-spacing:2px; text-transform:uppercase; color:var(--accent,var(--kavi-cyan)); opacity:0.65; margin-bottom:12px; }
+  .card-top { display:flex; align-items:flex-start; gap:12px; margin-bottom:12px; }
+  .card-icon { width:50px; height:50px; flex-shrink:0; border-radius:12px; border:1px solid var(--accent,var(--kavi-cyan)); background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .card-meta { flex:1; min-width:0; }
+  .card-title-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:4px; }
+  .card-title { font-family:'Orbitron',sans-serif; font-size:14px; font-weight:700; color:var(--text-primary); letter-spacing:0.5px; }
+  .badge { display:inline-flex; align-items:center; gap:4px; font-family:'Space Mono',monospace; font-size:7px; letter-spacing:1px; padding:3px 7px; border-radius:100px; text-transform:uppercase; font-weight:700; }
+  .badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:blink 2s ease-in-out infinite; flex-shrink:0; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .badge.live  { background:rgba(0,230,118,0.1);  color:#00e676; border:1px solid rgba(0,230,118,0.25); }
+  .badge.game  { background:rgba(0,229,255,0.1);  color:#00e5ff; border:1px solid rgba(0,229,255,0.28); }
+  .badge.defi  { background:rgba(66,165,245,0.12); color:#42a5f5; border:1px solid rgba(66,165,245,0.3); }
+  .card-desc { font-size:13px; font-weight:400; color:var(--text-secondary); line-height:1.55; margin-bottom:16px; }
+  .card-cta { display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1.5px; color:var(--accent,var(--kavi-cyan)); text-transform:uppercase; margin-top:auto; }
+  .cta-line { flex:1; height:1px; background:var(--accent,var(--kavi-cyan)); opacity:0.2; }
+  .cta-arr {}
+
+  /* Wide cards */
+  .card-wide { flex-direction: column; grid-column: 1 / -1; padding: 20px 18px; }
+  .card-wide .card-top { margin-bottom: 10px; }
+  .card-wide .card-icon { width: 52px; height: 52px; font-size: 26px; }
+  .card-wide .card-body { flex: 1; width: 100%; }
+  .card-wide .card-title { font-size: 16px; }
+  .card-wide .card-desc { margin-bottom: 12px; }
+
+  /* Accent colors */
+  .c-cyan   { --accent:#00e5ff; --glow:rgba(0,229,255,0.18); --glow-bg:rgba(0,229,255,0.05); }
+  .c-blue   { --accent:#42a5f5; --glow:rgba(66,165,245,0.18); --glow-bg:rgba(66,165,245,0.05); }
+  .c-teal   { --accent:#00bcd4; --glow:rgba(0,188,212,0.18); --glow-bg:rgba(0,188,212,0.05); }
+  .c-sky    { --accent:#29b6f6; --glow:rgba(41,182,246,0.18); --glow-bg:rgba(41,182,246,0.05); }
+  .c-indigo { --accent:#7986cb; --glow:rgba(121,134,203,0.18); --glow-bg:rgba(121,134,203,0.05); }
+  .c-aqua   { --accent:#26c6da; --glow:rgba(38,198,218,0.18); --glow-bg:rgba(38,198,218,0.05); }
+
+  /* ── FOOTER ──────────────────────────────────── */
+  footer { margin-top: 48px; padding: 22px 16px; border-top: 1px solid var(--kavi-border); text-align: center; }
+  .footer-text { font-family: 'Space Mono', monospace; font-size: 9px; color: rgba(0,229,255,0.3); letter-spacing: 2px; text-transform: uppercase; }
+  .footer-text strong { color: rgba(0,229,255,0.6); }
+
+  /* ── DESKTOP ENHANCEMENTS (>640px) ──────────── */
+  @media (min-width: 640px) {
+    .wrapper { padding: 0 28px 100px; }
+    header { padding: 48px 0 36px; }
+    .site-title { font-size: clamp(28px,5vw,50px); }
+    .site-tagline { font-size: 11px; letter-spacing: 4px; }
+    .header-divider { display: block; }
+    .stats-bar { margin: 20px 0; }
+    .stat-item { padding: 18px 20px; }
+
+    .wp-disconnected { flex-direction: row; align-items: center; padding: 26px 28px; }
+    .wp-disc-row { flex: 1; }
+    .btn-connect-main { width: auto; }
+
+    .wp-ref-row { flex-direction: row; align-items: center; }
+    .ref-link-input { flex: 1; width: auto; }
+    .btn-copy { width: auto; flex-shrink: 0; }
+
+    .card { padding: 26px 22px 22px; }
+    .card:hover { transform: translateY(-6px); border-color: var(--accent,var(--kavi-cyan)); box-shadow: 0 0 32px var(--glow,rgba(0,229,255,0.1)), 0 20px 40px rgba(0,0,0,0.5); }
+    .card:hover::before { opacity: 0.9; width: 56px; height: 56px; }
+    .card:hover .card-glow { opacity: 1; }
+    .card:hover .card-cta { gap: 14px; }
+    .card:hover .cta-line { opacity: 0.5; }
+    .card:hover .cta-arr { transform: translateX(5px); }
+
+    .card-wide { flex-direction: row; align-items: center; padding: 28px 30px; gap: 22px; }
+    .card-wide .card-icon { width: 64px; height: 64px; font-size: 32px; border-radius: 18px; }
+    .card-wide .card-title { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="scanlines"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-top">
+      <div class="site-title">Kavi Ecosystem</div>
+      <button class="btn-connect" id="headerConnectBtn" onclick="toggleWallet()">
+        <span class="connect-dot"></span>
+        <span id="headerBtnText">Connect</span>
+      </button>
+    </div>
+    <div class="header-sub">
+      <div class="site-tagline">Token Utilities &amp; DeFi Protocol Suite</div>
+      <div class="header-divider"></div>
+    </div>
+  </header>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-value">14</span><span class="stat-label">Utilities</span></div>
+    <div class="stat-item"><span class="stat-value" style="color:#00e676;font-size:clamp(10px,3vw,14px)">● Live</span><span class="stat-label">Status</span></div>
+  </div>
+
+  <!-- Incoming Referral Banner -->
+  <div class="ref-incoming" id="refIncoming">
+    <div class="ref-in-icon">🎁</div>
+    <div class="ref-in-text">
+      <div class="ref-in-label">Referred By</div>
+      <div class="ref-in-addr" id="refInAddr"></div>
+    </div>
+    <div class="ref-in-badge">● Active</div>
+  </div>
+
+  <!-- WALLET PANEL -->
+  <div class="wallet-panel">
+
+    <!-- Disconnected -->
+    <div class="wp-disconnected" id="wpDisconnected">
+      <div class="wp-disc-row">
+        <div class="wp-disc-icon">🦊</div>
+        <div>
+          <div class="wp-disc-title">Connect Your Wallet</div>
+          <div class="wp-disc-sub">
+            Connect your wallet — generate your unique referral link.<br>
+            Referral will automatically apply across all 10 programs.
+          </div>
+        </div>
+      </div>
+      <button class="btn-connect-main" onclick="connectWallet()">
+        <svg class="mm-icon" viewBox="0 0 318 318" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M274.1 35.5l-99.7 73.9 18.4-43.6z" fill="#E2761B"/>
+          <path d="M44.4 35.5l98.7 74.6-17.5-44.3z" fill="#E4761B"/>
+          <path d="M238.3 206.8l-26.5 40.6 56.7 15.6 16.3-55.3z" fill="#E4761B"/>
+          <path d="M33.9 207.7l16.2 55.3 56.7-15.6-26.5-40.6z" fill="#E4761B"/>
+          <path d="M103.6 138.2l-15.8 23.9 56.3 2.5-2-60.5z" fill="#E4761B"/>
+          <path d="M214.9 138.2l-39-34.8-1.3 61.2 56.2-2.5z" fill="#E4761B"/>
+          <path d="M106.8 247.4l33.8-16.5-29.2-22.8z" fill="#E4761B"/>
+          <path d="M177.9 230.9l33.9 16.5-4.7-39.3z" fill="#E4761B"/>
+        </svg>
+        Connect MetaMask
+      </button>
+    </div>
+    <div class="no-metamask" id="noMetamask">
+      ⚠ MetaMask is not installed &mdash;
+      <a href="https://metamask.io" target="_blank" rel="noopener">install it</a>
+    </div>
+
+    <!-- Connected -->
+    <div class="wp-connected" id="wpConnected">
+      <div class="wp-top">
+        <div class="wp-wallet-info">
+          <div class="wp-avatar">🦊</div>
+          <div>
+            <div class="wp-addr-label">Connected Wallet</div>
+            <div class="wp-addr" id="wpAddrText">—</div>
+          </div>
+        </div>
+        <div class="wp-con-badge"><span class="con-dot"></span> Connected</div>
+        <button class="btn-disconnect" onclick="disconnectWallet()">Disconnect</button>
+      </div>
+      <div class="wp-ref-box">
+        <div class="wp-ref-label">🔗 Your Referral Link — Share &amp; earn rewards</div>
+        <div class="wp-ref-row">
+          <input class="ref-link-input" id="refLinkInput" type="text" readonly />
+          <button class="btn-copy" id="copyBtn" onclick="copyRefLink()">📋 Copy Link</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION: Protocol -->
+  <div class="sep">
+    <div class="sep-line"></div>
+    <div class="sep-label">⬡ Protocol &amp; Utilities</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="cards-grid">
+    <a class="card c-aqua" href="https://kaviecosystem.github.io/freekavireward/">
+      <div class="card-glow"></div>
+      <div class="card-category">Free Reward · #01</div>
+      <div class="card-top">
+        <div class="card-icon">🪙</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">FreeKaviReward</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Grab your KAVI reward with a single tap. Half lands straight in your wallet, 30% is burned forever, and the rest funds the ecosystem.</div>
+      <div class="card-cta"><span>Get Free Kavi</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-cyan" href="https://tranceglobal.github.io/protocol/">
+      <div class="card-glow"></div>
+      <div class="card-category">Core Protocol · #02</div>
+      <div class="card-top">
+        <div class="card-icon">⚡</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">Trance Protocol</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">The powerful crowd-funding foundational protocol layer for building a big community for the KAVI token.</div>
+      <div class="card-cta"><span>Enter Protocol</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-teal" href="https://kaviecosystem.github.io/trancedirectreward/">
+      <div class="card-glow"></div>
+      <div class="card-category">Direct Reward Utility · #03</div>
+      <div class="card-top">
+        <div class="card-icon">🎁</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">TranceDirectReward</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Deposit $210 Kavi &amp; refer 9 people in Trance Protocol from your KaviEcoSystem link and get $100 Kavi bonus. Claim daily, direct to your wallet.</div>
+      <div class="card-cta"><span>Claim Rewards</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-sky" href="https://kaviecosystem.github.io/depositbonus/">
+      <div class="card-glow"></div>
+      <div class="card-category">Deposit Bonus Utility · #04</div>
+      <div class="card-top">
+        <div class="card-icon">💰</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">TranceDeposit500</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Deposit $500 Kavi Token in Trance Protocol to activate your bonus, then claim a guaranteed 1.54% weekly KAVI reward straight from the vault until fully claimed.</div>
+      <div class="card-cta"><span>Activate Bonus</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-blue" href="https://kaviecosystem.github.io/trance1000/">
+      <div class="card-glow"></div>
+      <div class="card-category">Deposit Bonus Utility · #05</div>
+      <div class="card-top">
+        <div class="card-icon">💰</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">TranceDeposit1000</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Deposit $1000 Kavi Token in Trance Protocol to activate your bonus, then claim a guaranteed 15% monthly KAVI reward straight from the vault until fully claimed.</div>
+      <div class="card-cta"><span>Activate Bonus</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-teal" href="https://kaviecosystem.github.io/tenx/">
+      <div class="card-glow"></div>
+      <div class="card-category">Multiplier Vault · #06</div>
+      <div class="card-top">
+        <div class="card-icon">🚀</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">Multiplier</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Lock KAVI while the price is low and multiply your deposit's USD value — claim 10% every 30 days once KAVI crosses the unlock price.</div>
+      <div class="card-cta"><span>Enter Vault</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-sky" href="https://kaviecosystem.github.io/ifc/">
+      <div class="card-glow"></div>
+      <div class="card-category">On-behalf Investment · #07</div>
+      <div class="card-top">
+        <div class="card-icon">🤝</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">InvestForCustomer</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">Fund a USDT deposit on behalf of your customer — it's recorded under their address and claimable by them alone, in monthly installments as KAVI climbs toward the plan's target.</div>
+      <div class="card-cta"><span>Invest For Customer</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+
+    <a class="card c-indigo" href="https://tranceglobal.github.io/last_stand">
+      <div class="card-glow"></div>
+      <div class="card-category">Battle Arena · #08</div>
+      <div class="card-top">
+        <div class="card-icon">⚔️</div>
+        <div class="card-meta">
+          <div class="card-title-row">
+            <div class="card-title">LastStand</div>
+            <span class="badge live"><span class="badge-dot"></span>Live</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-desc">High-stakes battle challenge — only the last standing holder claims the ultimate prize pool.</div>
+      <div class="card-cta"><span>Enter Battle</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+    </a>
+  </div>
+
+  <!-- SECTION: DeFi -->
+  <div class="sep" style="margin-top:30px">
+    <div class="sep-line"></div>
+    <div class="sep-label">◈ DeFi Utilities</div>
+    <div class="sep-line r"></div>
+  </div>
+
+  <div class="cards-grid" style="grid-template-columns:1fr">
+    <a class="card c-sky card-wide" href="https://kaviecosystem.github.io/kaviswap/">
+      <div class="card-glow"></div>
+      <div class="card-icon">🔁</div>
+      <div class="card-body">
+        <div class="card-category">Decentralized Exchange · #09</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">KaviSwap</div>
+          <span class="badge defi"><span class="badge-dot"></span>DeFi</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Seamlessly swap tokens within the Kavi ecosystem. Low slippage, deep liquidity, and instant on-chain settlement.</div>
+        <div class="card-cta"><span>Launch Swap</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card c-aqua card-wide" href="https://kaviecosystem.github.io/kavibulkbuy">
+      <div class="card-glow"></div>
+      <div class="card-icon">📦</div>
+      <div class="card-body">
+        <div class="card-category">Batch Purchase Tool · #10</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">KaviBulkBuy</div>
+          <span class="badge defi"><span class="badge-dot"></span>Utility</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Acquire large token positions in a single transaction. Batch buy KAVI efficiently with minimal gas fees.</div>
+        <div class="card-cta"><span>Bulk Purchase</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card c-cyan card-wide" href="https://kaviecosystem.github.io/doubleurkavi">
+      <div class="card-glow"></div>
+      <div class="card-icon">✌️</div>
+      <div class="card-body">
+        <div class="card-category">DeFi Utility · #11</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">DoubleUrStack</div>
+          <span class="badge defi"><span class="badge-dot"></span>DeFi</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Double your KAVI stack — a high-energy DeFi utility tool designed to multiply your holdings efficiently on-chain.</div>
+        <div class="card-cta"><span>Launch App</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card c-blue card-wide" href="https://kaviecosystem.github.io/loan/">
+      <div class="card-glow"></div>
+      <div class="card-icon">🏦</div>
+      <div class="card-body">
+        <div class="card-category">DeFi Lending · #12</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">KaviLoan</div>
+          <span class="badge defi"><span class="badge-dot"></span>DeFi</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Borrow and lend within the Kavi ecosystem — unlock liquidity from your KAVI holdings with on-chain lending protocols.</div>
+        <div class="card-cta"><span>Launch Loan</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+    <a class="card c-teal card-wide" href="https://kaviecosystem.github.io/adandearn/">
+      <div class="card-glow"></div>
+      <div class="card-icon">📣</div>
+      <div class="card-body">
+        <div class="card-category">Advertising Utility · #13</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">AdWithKavi</div>
+          <span class="badge defi"><span class="badge-dot"></span>Utility</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Advertise with Kavi — promote your project directly to the KAVI community and reach thousands of active token holders on-chain.</div>
+        <div class="card-cta"><span>Start Advertising</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+
+    <a class="card c-indigo card-wide" href="https://kaviecosystem.github.io/staketrance/">
+      <div class="card-glow"></div>
+      <div class="card-icon">🔒</div>
+      <div class="card-body">
+        <div class="card-category">Yield Staking · #14</div>
+        <div class="card-title-row" style="margin-bottom:8px">
+          <div class="card-title">TranceStaking</div>
+          <span class="badge defi"><span class="badge-dot"></span>DeFi</span>
+          <span class="badge live"><span class="badge-dot"></span>Live</span>
+        </div>
+        <div class="card-desc">Stake Trance Token paired with USDT, lock it for 180 days, and vest TS Token rewards weekly — track your position and claim straight from your wallet.</div>
+        <div class="card-cta"><span>Start Staking</span><span class="cta-line"></span><span class="cta-arr">→</span></div>
+      </div>
+    </a>
+  </div>
+
+  <footer>
+    <span class="footer-text">© 2025 <strong>Kavi Ecosystem</strong></span>
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// KAVI — WALLET CONNECT + REFERRAL SYSTEM
+// ═══════════════════════════════════════════════
+const WALLET_REGEX = /^0x[0-9a-fA-F]{40}$/;
+let connectedWallet = null;
+
+function shortAddr(addr) { return addr.slice(0,6)+'...'+addr.slice(-4); }
+
+function buildRefUrl(baseUrl, wallet) {
+  if (!wallet) return baseUrl;
+  try { const u = new URL(baseUrl); u.searchParams.set('ref', wallet); return u.toString(); }
+  catch(e) { return baseUrl; }
+}
+
+function applyReferralToCards(wallet) {
+  document.querySelectorAll('a.card').forEach(c => {
+    const base = c.getAttribute('data-base-href') || c.getAttribute('href');
+    c.setAttribute('data-base-href', base);
+    c.setAttribute('href', buildRefUrl(base, wallet));
+  });
+}
+
+function removeReferralFromCards() {
+  document.querySelectorAll('a.card').forEach(c => {
+    const base = c.getAttribute('data-base-href');
+    if (base) c.setAttribute('href', base);
+  });
+}
+
+function makeShareUrl(wallet) {
+  return window.location.origin + window.location.pathname + '?ref=' + encodeURIComponent(wallet);
+}
+
+function copyRefLink() {
+  const input = document.getElementById('refLinkInput');
+  const btn   = document.getElementById('copyBtn');
+  const url   = input.value;
+  // Mobile-friendly copy
+  if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+    navigator.share({ title: 'Kavi Ecosystem', url }).catch(()=>{});
+    btn.textContent = '✓ Shared!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = '📋 Copy Link'; btn.classList.remove('copied'); }, 2500);
+    return;
+  }
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent = '📋 Copy Link'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => { input.select(); document.execCommand('copy'); });
+}
+
+function showConnected(wallet) {
+  connectedWallet = wallet;
+  localStorage.setItem('kavi_wallet', wallet);
+  document.getElementById('wpDisconnected').style.display = 'none';
+  document.getElementById('wpConnected').style.display = 'block';
+  document.getElementById('wpAddrText').textContent = shortAddr(wallet);
+  const hBtn = document.getElementById('headerConnectBtn');
+  hBtn.classList.add('connected');
+  document.getElementById('headerBtnText').textContent = shortAddr(wallet);
+  document.getElementById('refLinkInput').value = makeShareUrl(wallet);
+  // Apply incoming referral only — never apply own wallet as referral
+  const inRef = localStorage.getItem('kavi_incoming_ref');
+  if (inRef && inRef.toLowerCase() !== wallet.toLowerCase()) {
+    applyReferralToCards(inRef);
+  } else {
+    removeReferralFromCards();
+  }
+}
+
+function showDisconnected() {
+  connectedWallet = null;
+  localStorage.removeItem('kavi_wallet');
+  document.getElementById('wpDisconnected').style.display = 'flex';
+  document.getElementById('wpConnected').style.display = 'none';
+  const hBtn = document.getElementById('headerConnectBtn');
+  hBtn.classList.remove('connected');
+  document.getElementById('headerBtnText').textContent = 'Connect';
+  const inRef = localStorage.getItem('kavi_incoming_ref');
+  if (inRef) applyReferralToCards(inRef); else removeReferralFromCards();
+}
+
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    document.getElementById('noMetamask').style.display = 'flex';
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if (accounts && accounts[0]) showConnected(accounts[0]);
+  } catch(err) { console.warn('Connect cancelled:', err.message); }
+}
+
+function disconnectWallet() { showDisconnected(); }
+function toggleWallet() { if (connectedWallet) disconnectWallet(); else connectWallet(); }
+
+if (typeof window.ethereum !== 'undefined') {
+  window.ethereum.on('accountsChanged', accounts => {
+    if (!accounts.length) showDisconnected(); else showConnected(accounts[0]);
+  });
+}
+
+function checkIncomingRef() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref && WALLET_REGEX.test(ref)) localStorage.setItem('kavi_incoming_ref', ref);
+  const saved = localStorage.getItem('kavi_incoming_ref');
+  if (saved && WALLET_REGEX.test(saved)) {
+    const banner = document.getElementById('refIncoming');
+    banner.style.display = 'flex';
+    document.getElementById('refInAddr').textContent = shortAddr(saved) + ' · ' + saved;
+    if (!connectedWallet) applyReferralToCards(saved);
+  }
+}
+
+(async function init() {
+  const saved = localStorage.getItem('kavi_wallet');
+  if (saved && typeof window.ethereum !== 'undefined') {
+    try {
+      const accs = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accs && accs[0] && accs[0].toLowerCase() === saved.toLowerCase()) {
+        showConnected(accs[0]);
+      } else { localStorage.removeItem('kavi_wallet'); }
+    } catch(e) {}
+  }
+  checkIncomingRef();
+})();
+
+// ── Stars ────────────────────────────────────────────────
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function initStars() {
+  stars = [];
+  const n = window.innerWidth < 640 ? 80 : 180;
+  for (let i = 0; i < n; i++) {
+    stars.push({ x:Math.random()*canvas.width, y:Math.random()*canvas.height,
+      r:Math.random()*1.4+0.3, speed:Math.random()*0.003+0.001,
+      phase:Math.random()*Math.PI*2, isCyan:Math.random()>0.7 });
+  }
+}
+function drawStars(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (const s of stars) {
+    const op = 0.15 + 0.7*(0.5+0.5*Math.sin(t*s.speed*60+s.phase));
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = s.isCyan ? 'rgba(0,229,255,'+op.toFixed(2)+')' : 'rgba(255,255,255,'+op.toFixed(2)+')';
+    ctx.fill();
+  }
+  requestAnimationFrame(drawStars);
+}
+resize(); initStars();
+window.addEventListener('resize', () => { resize(); initStars(); });
+requestAnimationFrame(drawStars);
+</script>
+</body>
+</html>
